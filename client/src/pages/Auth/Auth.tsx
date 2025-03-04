@@ -22,14 +22,14 @@ export default function Auth() {
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
             {isSignUp ? <SignUpForm /> : <LoginForm />}
-            <div className="mt-4 text-center">
+            <div className="mt-4 text-center text-sm">
               {isSignUp ? "Already have an account? " : "Don't have an account? "}
-              <button
+              <a
                 onClick={() => setIsSignUp(!isSignUp)}
-                className="text-blue-500 underline"
+                className="text-blue-500 underline underline-offset-4 cursor-pointer hover:text-blue-600" 
               >
                 {isSignUp ? "Sign In" : "Sign Up"}
-              </button>
+              </a>
             </div>
           </div>
         </div>
