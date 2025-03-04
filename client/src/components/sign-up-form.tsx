@@ -1,4 +1,8 @@
 import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 
 const SignUpForm = () => {
   const [step, setStep] = useState(1);
@@ -18,187 +22,211 @@ const SignUpForm = () => {
     setRole(e.target.value);
   };
 
-  const handleNext = () => {
-    setStep((prev) => prev + 1);
-  };
-
-  const handleBack = () => {
-    setStep((prev) => prev - 1);
-  };
+  const handleNext = () => setStep(step + 1);
+  const handleBack = () => setStep(step - 1);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (role === "student") {
-      setStudentData({ ...studentData, [name]: value });
+      setStudentData({
+        ...studentData,
+        [name]: value,
+      });
     } else if (role === "teacher") {
-      setTeacherData({ ...teacherData, [name]: value });
+      setTeacherData({
+        ...teacherData,
+        [name]: value,
+      });
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const data = role === "student" ? studentData : teacherData;
     console.log("Submitted:", { role, ...data });
-    // Implement further submission logic here
+    // Add your submission logic here
     alert("Form submitted!");
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6")}>
       {step === 1 && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Select Account Type</h2>
-          <label className="flex items-center gap-2 mb-2">
-            <input
-              type="radio"
-              name="role"
-              value="student"
-              checked={role === "student"}
-              onChange={handleRoleChange}
-            />
-            Student
-          </label>
-          <label className="flex items-center gap-2 mb-4">
-            <input
-              type="radio"
-              name="role"
-              value="teacher"
-              checked={role === "teacher"}
-              onChange={handleRoleChange}
-            />
-            Teacher
-          </label>
-          <button
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Sign Up</h1>
+            <p className="text-sm text-muted-foreground">
+              Select your account type
+            </p>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label className="cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="student"
+                checked={role === "student"}
+                onChange={handleRoleChange}
+                className="mr-2"
+              />
+              Student
+            </Label>
+            <Label className="cursor-pointer">
+              <input
+                type="radio"
+                name="role"
+                value="teacher"
+                checked={role === "teacher"}
+                onChange={handleRoleChange}
+                className="mr-2"
+              />
+              Teacher
+            </Label>
+          </div>
+          <Button
             type="button"
             onClick={handleNext}
             disabled={!role}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
+            className="w-full"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 
       {step === 2 && role === "student" && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Student Details</h2>
-          <input
-            type="text"
-            name="name"
-            placeholder="Student Name"
-            value={studentData.name}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <input
-            type="text"
-            name="studentId"
-            placeholder="Student ID"
-            value={studentData.studentId}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={studentData.email}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded"
-            >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Student Details</h1>
+            <p className="text-sm text-muted-foreground">
+              Provide your student information
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="student-name">Student Name</Label>
+            <Input
+              id="student-name"
+              type="text"
+              name="name"
+              placeholder="Student Name"
+              value={studentData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="student-id">Student ID</Label>
+            <Input
+              id="student-id"
+              type="text"
+              name="studentId"
+              placeholder="Student ID"
+              value={studentData.studentId}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="student-email">Email</Label>
+            <Input
+              id="student-email"
+              type="email"
+              name="email"
+              placeholder="m@example.com"
+              value={studentData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleBack}>
               Back
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
+            </Button>
+            <Button type="button" onClick={handleNext}>
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {step === 2 && role === "teacher" && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Teacher Details</h2>
-          <input
-            type="text"
-            name="name"
-            placeholder="Teacher Name"
-            value={teacherData.name}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <input
-            type="text"
-            name="department"
-            placeholder="Department"
-            value={teacherData.department}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <input
-            type="text"
-            name="teacherId"
-            placeholder="Teacher ID"
-            value={teacherData.teacherId}
-            onChange={handleChange}
-            className="border px-2 py-1 mb-3 w-full"
-          />
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded"
-            >
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Teacher Details</h1>
+            <p className="text-sm text-muted-foreground">
+              Provide your teacher information
+            </p>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="teacher-name">Teacher Name</Label>
+            <Input
+              id="teacher-name"
+              type="text"
+              name="name"
+              placeholder="Teacher Name"
+              value={teacherData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="department">Department</Label>
+            <Input
+              id="department"
+              type="text"
+              name="department"
+              placeholder="Department"
+              value={teacherData.department}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="teacher-id">Teacher ID</Label>
+            <Input
+              id="teacher-id"
+              type="text"
+              name="teacherId"
+              placeholder="Teacher ID"
+              value={teacherData.teacherId}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleBack}>
               Back
-            </button>
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
+            </Button>
+            <Button type="button" onClick={handleNext}>
               Next
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {step === 3 && (
-        <div>
-          <h2 className="text-xl font-bold mb-4">Review and Submit</h2>
-          <div className="mb-4">
-            <pre className="bg-gray-100 p-3 rounded">
-{JSON.stringify(
-  role === "student"
-    ? { role, ...studentData }
-    : { role, ...teacherData },
-  null,
-  2
-)}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Review and Submit</h1>
+            <p className="text-sm text-muted-foreground">
+              Verify your details before submission
+            </p>
+          </div>
+          <div>
+            <pre className="bg-muted p-3 rounded">
+              {JSON.stringify(
+                role === "student"
+                  ? { role, ...studentData }
+                  : { role, ...teacherData },
+                null,
+                2
+              )}
             </pre>
           </div>
-          <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={handleBack}
-              className="px-4 py-2 bg-gray-500 text-white rounded"
-            >
+          <div className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleBack}>
               Back
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Submit
-            </button>
+            </Button>
+            <Button type="submit">Submit</Button>
           </div>
         </div>
       )}
