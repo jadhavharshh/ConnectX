@@ -17,7 +17,7 @@ type Props = {
 const UserTypeCard = ({ value, title, text, userType, setUserType }: Props) => {
   return (
     <Label htmlFor={value} onClick={() => setUserType(value)}>
-      <Card className={cn("w-full cursor-pointer", userType === value && "border-orange")}>
+      <Card className={cn("w-full cursor-pointer", userType === value && "border-2 border-orange")}>
         <CardContent className="flex justify-between p-2">
           <div className="flex items-center gap-3">
             <Card className={cn("flex justify-center p-3", userType === value && "border-orange")}>
