@@ -56,20 +56,20 @@ const SignUpForm = () => {
           </p>
           </div>
           <div className="flex flex-col gap-4">
-            <UserTypeCard
-              setUserType={setRole}
-              title="Student"
-              text="Select if you are a student"
-              userType={role}
-              value="student"
-            />
-            <UserTypeCard
-              setUserType={setRole}
-              title="Teacher"
-              text="Select if you are a teacher"
-              userType={role}
-              value="teacher"
-            />
+          <UserTypeCard
+  setUserType={setRole}
+  title="Student"
+  text="I am a student ready to learn and grow."
+  userType={role}
+  value="student"
+/>
+<UserTypeCard
+  setUserType={setRole}
+  title="Teacher"
+  text="I am a teacher committed to inspiring minds."
+  userType={role}
+  value="teacher"
+/>
           </div>
           <Button
             type="button"
