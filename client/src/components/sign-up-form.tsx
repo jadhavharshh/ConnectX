@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import UserTypeCard from "@/components/user-type-card";
 
 const SignUpForm = () => {
   const [step, setStep] = useState(1);
@@ -17,10 +18,6 @@ const SignUpForm = () => {
     department: "",
     teacherId: "",
   });
-
-  const handleRoleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRole(e.target.value);
-  };
 
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
@@ -52,35 +49,27 @@ const SignUpForm = () => {
     <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6")}>
       {step === 1 && (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Sign Up</h1>
-            <p className="text-sm text-muted-foreground">
-              Select your account type
-            </p>
+          <div className="flex flex-col  gap-2 text-start">
+          <h2 className="text-start md:text-3xl font-bold ">Create an account</h2>
+          <p className="text-iridium md:text-sm">
+            Tell us about yourself! What do you do?
+          </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <Label className="cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="student"
-                checked={role === "student"}
-                onChange={handleRoleChange}
-                className="mr-2"
-              />
-              Student
-            </Label>
-            <Label className="cursor-pointer">
-              <input
-                type="radio"
-                name="role"
-                value="teacher"
-                checked={role === "teacher"}
-                onChange={handleRoleChange}
-                className="mr-2"
-              />
-              Teacher
-            </Label>
+          <div className="flex flex-col gap-4">
+            <UserTypeCard
+              setUserType={setRole}
+              title="Student"
+              text="Select if you are a student"
+              userType={role}
+              value="student"
+            />
+            <UserTypeCard
+              setUserType={setRole}
+              title="Teacher"
+              text="Select if you are a teacher"
+              userType={role}
+              value="teacher"
+            />
           </div>
           <Button
             type="button"
