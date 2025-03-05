@@ -2,12 +2,12 @@ const RightSide = () => {
   return (
     <div className="hidden lg:flex flex-1 w-full max-h-full max-w-4000px overflow-hidden relative bg-[#f1f1e8]  dark:bg-[#131313] flex-col pt-10 pl-24 gap-3">
       <h2 className="text-start md:text-4xl font-bold">
-        Hi, I’m your AI powered sales assistant, Corinna!
+        Hi , Welcome to ConnectX.
       </h2>
       <p className="text-start md:text-sm mb-10">
-        Corinna is capable of capturing lead information without a form...
-        <br />
-        something never done before 😉
+        Experience an innovative LMS with integrated realtime chat, <br />
+        empowering your college learning experience.
+
       </p>
       <img
         src="/images/app-ui.png"
