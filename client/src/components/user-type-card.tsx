@@ -24,8 +24,8 @@ const UserTypeCard = ({ value, title, text, userType, setUserType }: Props) => {
               <User size={30} className={cn(userType === value ? "text-orange" : "text-gray-400")} />
             </Card>
             <div>
-              <CardDescription className="text-iridium">{title}</CardDescription>
-              <CardDescription className="text-gray-400">{text}</CardDescription>
+              <CardDescription className="text-iridium text-start">{title}</CardDescription>
+              <CardDescription className="text-gray-400 text-start">{text}</CardDescription>
             </div>
           </div>
           <div>
