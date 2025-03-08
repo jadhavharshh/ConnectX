@@ -9,7 +9,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@/components/ui/input-otp"
+} from "@/components/ui/input-otp";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,17 +18,18 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 const SignUpForm = () => {
-  const [step, setStep] = useState(1);
-  const [role, setRole] = useState("");
-  const [value, setValue] = React.useState("")
-  // Added states for dropdowns in student sign-up
-  const [studentYear, setStudentYear] = useState<"first" | "second" | "third" | "fourth" | "">("");
+  const [step, setStep] = useState<number>(1);
+  const [role, setRole] = useState<string>("");
+  const [value, setValue] = useState<string>(""); // OTP value state
 
-  const [studentDivision, setStudentDivision] = useState("");
+  // States for student sign-up
+  const [studentYear, setStudentYear] = useState<"first" | "second" | "third" | "fourth" | "">("");
+  const [studentDivision, setStudentDivision] = useState<string>("");
 
   const yearOptions: Record<"first" | "second" | "third" | "fourth", string> = {
     first: "First Year",
@@ -37,14 +38,12 @@ const SignUpForm = () => {
     fourth: "Fourth Year",
   };
 
-
   const [studentData, setStudentData] = useState({
     name: "",
     studentId: "",
     email: "",
     password: "",
   });
-
 
   const [teacherData, setTeacherData] = useState({
     name: "",
@@ -53,9 +52,10 @@ const SignUpForm = () => {
     password: "",
   });
 
-  // Get the underlying signUp and clerk resources.
+  // Get Clerk signUp and clerk resources
   const { signUp } = useSignUp();
   const clerk = useClerk();
+  const navigate = useNavigate();
 
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
@@ -75,34 +75,56 @@ const SignUpForm = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // New function: registers the user via Clerk API and sends an OTP email.
+  const handleRegistration = async () => {
     if (!signUp) {
       console.error("SignUp resource is not ready");
       return;
     }
-    // For teachers the teacherId field is treated as the email.
-    const email = role === "student" ? studentData.email : teacherData.teacherId;
-    const password =
-      role === "student" ? studentData.password : teacherData.password;
-
+    // For teachers, the teacherId field is used as email.
+    const emailToRegister = role === "student" ? studentData.email : teacherData.teacherId;
+    const passwordToRegister = role === "student" ? studentData.password : teacherData.password;
     try {
-      // Call signUp.create with only emailAddress and password.
       const result = await signUp.create({
-        emailAddress: email,
-        password: password,
+        emailAddress: emailToRegister,
+        password: passwordToRegister,
       });
-      await clerk.setActive({ session: result.createdSessionId });
-      console.log("User signed up:", result);
-      alert("Signed up successfully!");
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setStep(3);
     } catch (error) {
       console.error("Sign up error", error);
       alert("There was an error during sign up. Please try again.");
     }
   };
 
+  // In step 3, this function verifies the OTP and sets the active session.
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!signUp) {
+      console.error("SignUp resource is not ready");
+      return;
+    }
+    try {
+      const completeSignUp = await signUp.attemptEmailAddressVerification({ code: value });
+      if (completeSignUp.status === "complete") {
+        await clerk.setActive({ session: completeSignUp.createdSessionId });
+        console.log("User signed up:", completeSignUp);
+        navigate("/dashboard");
+        toast.success("Account created successfully!");
+      } else {
+        alert("OTP verification did not complete. Please try again.");
+      }
+    } catch (error) {
+      console.error("OTP verification error", error);
+      alert("There was an error during OTP verification. Please try again.");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6")}>
+    <form
+      onSubmit={step === 3 ? handleSubmit : (e) => e.preventDefault()}
+      className={cn("flex flex-col gap-6")}
+    >
       {step === 1 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 text-start">
@@ -162,7 +184,6 @@ const SignUpForm = () => {
               required
             />
           </div>
-          {/* Student Details section */}
           <div className="grid gap-2 text-start">
             <Label htmlFor="student-year">Current Year</Label>
             <DropdownMenu>
@@ -186,11 +207,9 @@ const SignUpForm = () => {
                   <DropdownMenuRadioItem value="third">Third Year</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="fourth">Fourth Year</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
-
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
           <div className="grid gap-2 text-start">
             <Label htmlFor="student-division">Current Division</Label>
             <DropdownMenu>
@@ -210,7 +229,6 @@ const SignUpForm = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-
           <div className="grid gap-2 text-start">
             <Label htmlFor="student-id">Student ID</Label>
             <Input
@@ -251,7 +269,7 @@ const SignUpForm = () => {
             <Button type="button" variant="outline" onClick={handleBack}>
               Back
             </Button>
-            <Button type="button" onClick={handleNext}>
+            <Button type="button" onClick={handleRegistration}>
               Next
             </Button>
           </div>
@@ -320,7 +338,7 @@ const SignUpForm = () => {
             <Button type="button" variant="outline" onClick={handleBack}>
               Back
             </Button>
-            <Button type="button" onClick={handleNext}>
+            <Button type="button" onClick={handleRegistration}>
               Next
             </Button>
           </div>
