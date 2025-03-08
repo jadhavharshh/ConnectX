@@ -19,6 +19,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { ChevronDown } from "lucide-react"; 
 
 const SignUpForm = () => {
   const [step, setStep] = useState(1);
@@ -34,6 +35,13 @@ const SignUpForm = () => {
     email: "",
     password: "",
   });
+  const yearOptions = {
+    first: "First Year",
+    second: "Second Year",
+    third: "Third Year",
+    fourth: "Fourth Year",
+  };
+
   const [teacherData, setTeacherData] = useState({
     name: "",
     department: "",
@@ -168,6 +176,23 @@ const SignUpForm = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          <div className="grid gap-2 text-start">
+            <Label htmlFor="student-name">Current Division</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Open</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Current year</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={studentDivision} onValueChange={setStudentDivision}>
+                  <DropdownMenuRadioItem value="A">A</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="B">B</DropdownMenuRadioItem>
+                  
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <div className="grid gap-2 text-start">
             <Label htmlFor="student-id">Student ID</Label>
@@ -294,7 +319,7 @@ const SignUpForm = () => {
             </p>
           </div>
           <div className="space-y-2 flex flex-col items-start gap-2">
-            <InputOTP maxLength={6} value={value} onChange={(value) => setValue(value)}>
+          <InputOTP maxLength={6} value={value} onChange={(value: string) => setValue(value)}>
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
