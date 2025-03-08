@@ -43,7 +43,7 @@ export function LoginForm({
       if (result.status === "complete" && result.createdSessionId) {
         await clerk.setActive({ session: result.createdSessionId })
         console.log("Login complete, redirecting to dashboard")
-        navigate("/dashboard",{replace:true})
+        navigate("/dashboard")
       } else {
         setError("Login not complete. Please try again.")
       }
