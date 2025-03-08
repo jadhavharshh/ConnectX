@@ -4,6 +4,7 @@ import Home from './pages/Home/Home'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Error from './pages/Error/Error'
 import LoginPage from './pages/Auth/Auth'
+import { ForgotPassword } from './pages/Auth/Forgotpassword'
 // import userAppStore from './store/store'
 // import { apiClient } from './lib/api-client'
 // import { GET_USER_INFO } from './utils/constants'
@@ -88,6 +89,7 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/404" element={<Error />} />
           <Route path='*' element={<Navigate to ="/404" />} />
+          <Route path="/forgotpassword" element={<ForgotPassword />} />
         </Routes>
 
       </BrowserRouter>
