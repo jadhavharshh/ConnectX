@@ -19,15 +19,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { ChevronDown } from "lucide-react"; 
+import { ChevronDown } from "lucide-react";
 
 const SignUpForm = () => {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
   const [value, setValue] = React.useState("")
   // Added states for dropdowns in student sign-up
-  const [studentYear, setStudentYear] = useState("");
+  const [studentYear, setStudentYear] = useState<"first" | "second" | "third" | "fourth" | "">("");
+
   const [studentDivision, setStudentDivision] = useState("");
+
+  const yearOptions: Record<"first" | "second" | "third" | "fourth", string> = {
+    first: "First Year",
+    second: "Second Year",
+    third: "Third Year",
+    fourth: "Fourth Year",
+  };
+
 
   const [studentData, setStudentData] = useState({
     name: "",
@@ -35,12 +44,7 @@ const SignUpForm = () => {
     email: "",
     password: "",
   });
-  const yearOptions = {
-    first: "First Year",
-    second: "Second Year",
-    third: "Third Year",
-    fourth: "Fourth Year",
-  };
+
 
   const [teacherData, setTeacherData] = useState({
     name: "",
@@ -158,37 +162,50 @@ const SignUpForm = () => {
               required
             />
           </div>
+          {/* Student Details section */}
           <div className="grid gap-2 text-start">
-            <Label htmlFor="student-name">Current Year</Label>
+            <Label htmlFor="student-year">Current Year</Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">Open</Button>
+                <Button variant="outline" className="flex items-center justify-between">
+                  {studentYear ? yearOptions[studentYear] : "Select Year"}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Current year</DropdownMenuLabel>
+                <DropdownMenuLabel>Current Year</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={studentYear} onValueChange={setStudentYear}>
-                  <DropdownMenuRadioItem value="top">First Year</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Second Year</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="bottom">Third Year</DropdownMenuRadioItem>
-                  <DropdownMenuRadioItem value="right">Fourth Year</DropdownMenuRadioItem>
+                <DropdownMenuRadioGroup
+                  value={studentYear}
+                  onValueChange={(value: string) =>
+                    setStudentYear(value as "" | "first" | "second" | "third" | "fourth")
+                  }
+                >
+                  <DropdownMenuRadioItem value="first">First Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="second">Second Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="third">Third Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="fourth">Fourth Year</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
+
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
           <div className="grid gap-2 text-start">
-            <Label htmlFor="student-name">Current Division</Label>
+            <Label htmlFor="student-division">Current Division</Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">Open</Button>
+                <Button variant="outline" className="flex items-center justify-between">
+                  {studentDivision ? studentDivision : "Select Division"}
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Current year</DropdownMenuLabel>
+                <DropdownMenuLabel>Current Division</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={studentDivision} onValueChange={setStudentDivision}>
                   <DropdownMenuRadioItem value="A">A</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="B">B</DropdownMenuRadioItem>
-                  
                 </DropdownMenuRadioGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -319,7 +336,7 @@ const SignUpForm = () => {
             </p>
           </div>
           <div className="space-y-2 flex flex-col items-start gap-2">
-          <InputOTP maxLength={6} value={value} onChange={(value: string) => setValue(value)}>
+            <InputOTP maxLength={6} value={value} onChange={(value: string) => setValue(value)}>
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
                 <InputOTPSlot index={1} />
