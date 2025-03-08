@@ -24,6 +24,9 @@ const SignUpForm = () => {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
   const [value, setValue] = React.useState("")
+  // Added states for dropdowns in student sign-up
+  const [studentYear, setStudentYear] = useState("");
+  const [studentDivision, setStudentDivision] = useState("");
 
   const [studentData, setStudentData] = useState({
     name: "",
@@ -147,6 +150,25 @@ const SignUpForm = () => {
               required
             />
           </div>
+          <div className="grid gap-2 text-start">
+            <Label htmlFor="student-name">Current Year</Label>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Open</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56">
+                <DropdownMenuLabel>Current year</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuRadioGroup value={studentYear} onValueChange={setStudentYear}>
+                  <DropdownMenuRadioItem value="top">First Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="bottom">Second Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="bottom">Third Year</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="right">Fourth Year</DropdownMenuRadioItem>
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <div className="grid gap-2 text-start">
             <Label htmlFor="student-id">Student ID</Label>
             <Input
