@@ -1,24 +1,82 @@
+import { useState } from "react"
+import { useSignIn, useClerk } from "@clerk/clerk-react"  // <-- add Clerk hooks
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useNavigate } from "react-router-dom" // for redirection
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"form">) {
+  // add state for email, password and error handling
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+
+  const { signIn } = useSignIn()  // get the signIn resource
+  const clerk = useClerk()
+  const navigate = useNavigate()
+
+  // handler for form submission
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setError("")
+
+    // Guard check for signIn resource
+    if (!signIn) {
+      setError("SignIn is not ready. Please try again later.")
+      return
+    }
+
+    try {
+      // Sign out current session to comply with single session mode
+      await clerk.signOut()
+
+      // Use Clerk's signIn resource with the login details
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      })
+
+      if (result.status === "complete" && result.createdSessionId) {
+        await clerk.setActive({ session: result.createdSessionId })
+        console.log("Login complete, redirecting to dashboard")
+        navigate("/dashboard",{replace:true})
+      } else {
+        setError("Login not complete. Please try again.")
+      }
+    } catch (err: any) {
+      console.error(err)
+      setError(err.errors ? err.errors[0].message : "An error occurred.")
+    }
+  }
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
-      <div className="flex flex-col  gap-2 text-start">
-        <h2 className="text-start md:text-3xl font-bold ">Login Account</h2>
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={handleSubmit}
+      {...props}
+    >
+      <div className="flex flex-col gap-2 text-start">
+        <h2 className="text-start md:text-3xl font-bold">Login Account</h2>
         <p className="text-iridium md:text-sm">
           Welcome back! Login to your account
         </p>
       </div>
+      {error && <p className="text-red-600">{error}</p>}
       <div className="grid gap-6">
         <div className="grid gap-2 text-start">
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <Input
+            id="email"
+            type="email"
+            placeholder="m@example.com"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
         </div>
         <div className="grid gap-2">
           <div className="flex items-center">
@@ -30,7 +88,13 @@ export function LoginForm({
               Forgot your password?
             </a>
           </div>
-          <Input id="password" type="password" required />
+          <Input
+            id="password"
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
         </div>
         <Button type="submit" className="w-full">
           Login
@@ -50,7 +114,6 @@ export function LoginForm({
           Login with GitHub
         </Button>
       </div>
-
     </form>
   )
 }

@@ -85,7 +85,7 @@ const SignUpForm = () => {
     const emailToRegister = role === "student" ? studentData.email : teacherData.teacherId;
     const passwordToRegister = role === "student" ? studentData.password : teacherData.password;
     try {
-      const result = await signUp.create({
+      await signUp.create({
         emailAddress: emailToRegister,
         password: passwordToRegister,
       });
