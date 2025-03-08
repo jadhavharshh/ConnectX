@@ -4,30 +4,49 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
-let app = express();
-dotenv.config()
+dotenv.config();
 
-const port = process.env.PORT || 50000
+const app = express();
+const port = process.env.PORT || 50000;
 const DATABASE_URL = process.env.DATABASE_URL;
+const origin = process.env.ORIGIN || "http://localhost:5173";
 
 // Middleware for CORS
 app.use(cors({
-    origin: process.env.ORIGIN as string,
+    origin: origin,
     methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
     credentials: true
 }));
 
-app.use(cookieParser())
-app.use(express.json())
+app.use(cookieParser());
+app.use(express.json());
 
-app.listen(port, ()=>{
-    console.log(`Server is running on port ${port}`)
-})
-
-app.get('/', (req, res)=>{
-    res.send('Server is running')
+app.get('/', (req, res) => {
+    res.send('Server is running');
 });
 
-mongoose.connect(DATABASE_URL as string).then(()=>{
-    console.log('Database connected')
-})
+app.post("/api/send-otp", (req, res) => {
+  // Implement your OTP sending logic here
+  const { email } = req.body;
+  // Validate email, generate OTP, send email, etc.
+  console.log("Received OTP request for email:", email);
+  res.status(200).json({ message: "OTP sent" });
+});
+
+// Connect to the database and then start the server
+if (!DATABASE_URL) {
+  console.error("DATABASE_URL is not defined in environment variables.");
+  process.exit(1);
+}
+
+mongoose.connect(DATABASE_URL)
+  .then(() => {
+    console.log('Database connected');
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Failed to connect to database:", error);
+    process.exit(1);
+  });
