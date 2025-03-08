@@ -5,26 +5,14 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import UserTypeCard from "@/components/user-type-card";
 import { useSignUp, useClerk } from "@clerk/clerk-react";
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 
 const SignUpForm = () => {
   const [step, setStep] = useState(1);
   const [role, setRole] = useState("");
-  const [value, setValue] = React.useState("")
-
+  const [otp, setOtp] = useState("");
+  const [error, setError] = useState("");
+  
+  // Data for student and teacher
   const [studentData, setStudentData] = useState({
     name: "",
     studentId: "",
@@ -38,12 +26,12 @@ const SignUpForm = () => {
     password: "",
   });
 
-  // Get the underlying signUp and clerk resources.
+  // Get the underlying Clerk signUp and clerk resources.
   const { signUp } = useSignUp();
   const clerk = useClerk();
 
-  const handleNext = () => setStep(step + 1);
-  const handleBack = () => setStep(step - 1);
+  const handleNext = () => setStep((prev) => prev + 1);
+  const handleBack = () => setStep((prev) => prev - 1);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -60,40 +48,78 @@ const SignUpForm = () => {
     }
   };
 
+  // This handler is used on the Review (step 3) page.
+  // Instead of immediately setting the session active,
+  // we create the SignUp and trigger OTP verification, then advance to step 4.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
     if (!signUp) {
       console.error("SignUp resource is not ready");
       return;
     }
-    // For teachers the teacherId field is treated as the email.
+    // For teachers, the teacherId field is treated as the email.
     const email = role === "student" ? studentData.email : teacherData.teacherId;
-    const password =
-      role === "student" ? studentData.password : teacherData.password;
+    const password = role === "student" ? studentData.password : teacherData.password;
 
     try {
-      // Call signUp.create with only emailAddress and password.
-      const result = await signUp.create({
-        emailAddress: email,
-        password: password,
-      });
-      await clerk.setActive({ session: result.createdSessionId });
-      console.log("User signed up:", result);
-      alert("Signed up successfully!");
-    } catch (error) {
+      // Create the SignUp object with email and password.
+      const result = await signUp.create({ emailAddress: email, password });
+      console.log("SignUp created:", result);
+      // Prepare email verification (this sends the OTP to the email).
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      // Move to OTP verification step.
+      setStep(4);
+    } catch (error: any) {
       console.error("Sign up error", error);
+      setError(error.errors ? error.errors[0].message : error.toString());
       alert("There was an error during sign up. Please try again.");
     }
   };
 
+  // This handler is for the OTP verification step (step 4)
+  const handleOtpSubmit = async () => {
+    setError("");
+    if (!signUp) return;
+    try {
+      // Attempt to verify the email with the provided OTP code.
+      const updatedSignUp = await signUp.attemptEmailAddressVerification({ code: otp });
+      console.log("Updated SignUp state:", updatedSignUp);
+
+      // Check if all required fields have been provided and verified.
+      if (
+        updatedSignUp.missingFields.length === 0 &&
+        updatedSignUp.unverifiedFields.length === 0 &&
+        updatedSignUp.status === "complete"
+      ) {
+        if (updatedSignUp.createdSessionId) {
+          await clerk.setActive({ session: updatedSignUp.createdSessionId });
+          console.log("User created with ID:", updatedSignUp.createdUserId);
+          alert("Signed up successfully!");
+        } else {
+          throw new Error("Session creation failed.");
+        }
+      } else {
+        console.warn("Sign-up incomplete. Missing fields:", updatedSignUp.missingFields);
+        console.warn("Unverified fields:", updatedSignUp.unverifiedFields);
+        setError("Sign-up is incomplete. Please complete all required verification steps.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setError(err.errors ? err.errors[0].message : err.toString());
+      alert("There was an error verifying the OTP. Please try again.");
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className={cn("flex flex-col gap-6")}>
+    <form onSubmit={step === 3 ? handleSubmit : undefined} className={cn("flex flex-col gap-6")}>
+      {error && <p className="text-red-600">{error}</p>}
+
+      {/* Step 1: Choose user type */}
       {step === 1 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 text-start">
-            <h2 className="text-start md:text-3xl font-bold">
-              Create an account
-            </h2>
+            <h2 className="text-start md:text-3xl font-bold">Create an account</h2>
             <p className="text-iridium md:text-sm">
               Tell us about yourself! What do you do?
             </p>
@@ -125,12 +151,11 @@ const SignUpForm = () => {
         </div>
       )}
 
+      {/* Step 2: Collect details */}
       {step === 2 && role === "student" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 text-start">
-            <h2 className="text-start md:text-3xl font-bold">
-              Student Details
-            </h2>
+            <h2 className="text-start md:text-3xl font-bold">Student Details</h2>
             <p className="text-iridium md:text-sm">
               Provide your student information
             </p>
@@ -197,9 +222,7 @@ const SignUpForm = () => {
       {step === 2 && role === "teacher" && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 text-start">
-            <h2 className="text-start md:text-3xl font-bold">
-              Teacher Details
-            </h2>
+            <h2 className="text-start md:text-3xl font-bold">Teacher Details</h2>
             <p className="text-iridium md:text-sm">
               Provide your teacher information
             </p>
@@ -263,38 +286,62 @@ const SignUpForm = () => {
         </div>
       )}
 
+      {/* Step 3: Review and Submit */}
       {step === 3 && (
         <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-2 text-start">
-            <h1 className="text-2xl font-bold">Verify Your Account</h1>
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Review and Submit</h1>
             <p className="text-sm text-muted-foreground">
-              Enter the one-time password sent to your email to verify your account details.
+              Verify your details before submission
             </p>
           </div>
-          <div className="space-y-2 flex flex-col items-start gap-2">
-            <InputOTP maxLength={6} value={value} onChange={(value) => setValue(value)}>
-              <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
-              </InputOTPGroup>
-            </InputOTP>
-            <div className="text-start text-sm">
-              {value === "" ? (
-                <>Enter your one-time password.</>
-              ) : (
-                <>You entered: {value}</>
+          <div>
+            <pre className="bg-muted p-3 rounded">
+              {JSON.stringify(
+                role === "student"
+                  ? { role, ...studentData }
+                  : { role, ...teacherData },
+                null,
+                2
               )}
-            </div>
+            </pre>
           </div>
           <div className="flex justify-between">
             <Button type="button" variant="outline" onClick={handleBack}>
               Back
             </Button>
+            {/* On submit, we trigger handleSubmit which creates the signUp and sends the OTP */}
             <Button type="submit">Submit</Button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 4: OTP Verification */}
+      {step === 4 && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col items-center gap-2 text-center">
+            <h1 className="text-2xl font-bold">Verify OTP</h1>
+            <p className="text-sm text-muted-foreground">
+              Enter the OTP sent to your email
+            </p>
+          </div>
+          <div className="grid gap-2 text-start">
+            <Label htmlFor="otp">OTP</Label>
+            <Input
+              id="otp"
+              type="text"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+            />
+          </div>
+          <div className="flex justify-between">
+            <Button type="button" variant="outline" onClick={handleBack}>
+              Back
+            </Button>
+            <Button type="button" onClick={handleOtpSubmit}>
+              Verify OTP
+            </Button>
           </div>
         </div>
       )}
