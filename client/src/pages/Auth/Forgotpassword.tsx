@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface ForgotPasswordProps {
   onBack?: () => void;
@@ -57,7 +58,7 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
         setError('Additional authentication required.');
       } else if (result.status === 'complete') {
         console.log('Password reset successful for:', email);
-        setMessage('Password reset successful! Redirecting to login...');
+        toast.success('Password reset successful! Redirecting to login...');
         setTimeout(() => {
           onBack ? onBack() : navigate('/login');
         }, 1500);

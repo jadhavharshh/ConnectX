@@ -42,8 +42,9 @@ export function LoginForm({ onForgotPassword, onSwitchForm, className, ...props 
       if (result.status === "complete" && result.createdSessionId) {
         await clerk.setActive({ session: result.createdSessionId })
         console.log("Login complete, redirecting to dashboard")
-        // Redirect via route update if needed
         navigate("/dashboard")   
+        // Redirect via route update if needed
+
       } else {
         setError("Login not complete. Please try again.")
       }
