@@ -22,7 +22,13 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-const SignUpForm = () => {
+
+// Add the additional onSwitchForm prop to the component props
+interface SignUpFormProps {
+  onSwitchForm?: () => void;
+}
+
+const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
   const [step, setStep] = useState<number>(1);
   const [role, setRole] = useState<string>("");
   const [value, setValue] = useState<string>(""); // OTP value state
@@ -380,6 +386,18 @@ const SignUpForm = () => {
           </div>
         </div>
       )}
+
+      <div className="mt-4 text-center text-sm">
+        Already have an account?{" "}
+        {onSwitchForm && (
+          <span
+            onClick={onSwitchForm}
+            className="text-blue-500 underline underline-offset-4 cursor-pointer hover:text-blue-600"
+          >
+            Login
+          </span>
+        )}
+      </div>
     </form>
   );
 };

@@ -1,40 +1,39 @@
 import { useState } from "react"
-import { useSignIn, useClerk } from "@clerk/clerk-react"  // <-- add Clerk hooks
+import { useSignIn, useClerk } from "@clerk/clerk-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useNavigate, Link } from "react-router-dom" // added Link for navigation
+import { useNavigate } from "react-router-dom"
+// Removed Link import since we now call a prop callback instead
 
-export function LoginForm({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<"form">) {
-  // add state for email, password and error handling
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+  onForgotPassword?: () => void;
+  onSwitchForm?: () => void;
+}
+
+export function LoginForm({ onForgotPassword, onSwitchForm, className, ...props }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
 
-  const { signIn } = useSignIn()  // get the signIn resource
+  const { signIn } = useSignIn()
   const clerk = useClerk()
   const navigate = useNavigate()
+  // using navigate only if you decide to use routing outside Auth
+  // const navigate = useNavigate()
 
-  // handler for form submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
 
-    // Guard check for signIn resource
     if (!signIn) {
       setError("SignIn is not ready. Please try again later.")
       return
     }
 
     try {
-      // Sign out current session to comply with single session mode
       await clerk.signOut()
-
-      // Use Clerk's signIn resource with the login details
       const result = await signIn.create({
         identifier: email,
         password,
@@ -43,7 +42,8 @@ export function LoginForm({
       if (result.status === "complete" && result.createdSessionId) {
         await clerk.setActive({ session: result.createdSessionId })
         console.log("Login complete, redirecting to dashboard")
-        navigate("/dashboard")
+        // Redirect via route update if needed
+        navigate("/dashboard")   
       } else {
         setError("Login not complete. Please try again.")
       }
@@ -81,12 +81,12 @@ export function LoginForm({
         <div className="grid gap-2">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-            <Link
-              to="/forgotpassword"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
+            <a
+              onClick={onForgotPassword}
+              className="ml-auto text-sm underline-offset-4 hover:underline cursor-pointer"
             >
               Forgot your password?
-            </Link>
+            </a>
           </div>
           <Input
             id="password"
@@ -113,6 +113,15 @@ export function LoginForm({
           </svg>
           Login with GitHub
         </Button>
+      </div>
+      <div className="mt-4 text-center text-sm">
+        Don't have an account?{" "}
+        <a
+          onClick={onSwitchForm}
+          className="text-blue-500 underline underline-offset-4 cursor-pointer hover:text-blue-600"
+        >
+          Sign Up
+        </a>
       </div>
     </form>
   )
