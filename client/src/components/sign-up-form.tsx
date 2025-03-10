@@ -90,13 +90,13 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
     // For teachers, the teacherId field is used as email.
     const emailToRegister = role === "student" ? studentData.email : teacherData.teacherId;
     const passwordToRegister = role === "student" ? studentData.password : teacherData.password;
+    setStep(3);
     try {
       await signUp.create({
         emailAddress: emailToRegister,
         password: passwordToRegister,
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-      setStep(3);
     } catch (error) {
       console.error("Sign up error", error);
       alert("There was an error during sign up. Please try again.");
