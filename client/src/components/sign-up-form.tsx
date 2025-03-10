@@ -22,6 +22,8 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { apiClient } from "@/lib/api-client"; // <-- new import
+import { SEND_SIGNUP_DATA } from "@/utils/constants";
 
 // Add the additional onSwitchForm prop to the component props
 interface SignUpFormProps {
@@ -97,6 +99,13 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
         password: passwordToRegister,
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // If teacher, send additional signup data to the server
+      console.log("BEFORE TEACHER")
+      if (role === "teacher") {
+        console.log("IN THE IF TEACHER STATMENT")
+        await apiClient.post(SEND_SIGNUP_DATA, teacherData);
+      }
     } catch (error) {
       console.error("Sign up error", error);
       alert("There was an error during sign up. Please try again.");

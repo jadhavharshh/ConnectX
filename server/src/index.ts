@@ -3,11 +3,12 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
+import AuthRoutes from './Routes/AuthRoutes';
 
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 50000;
+const port = process.env.PORT || 5000;
 const DATABASE_URL = process.env.DATABASE_URL;
 const origin = process.env.ORIGIN || "http://localhost:5173";
 
@@ -20,6 +21,10 @@ app.use(cors({
 
 app.use(cookieParser());
 app.use(express.json());
+
+
+app.use("/api/auth", AuthRoutes);
+
 
 app.get('/', (req, res) => {
     res.send('Server is running');
