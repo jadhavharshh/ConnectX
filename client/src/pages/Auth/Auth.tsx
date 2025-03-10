@@ -3,10 +3,12 @@ import { GalleryVerticalEnd } from "lucide-react";
 
 import { LoginForm } from "@/components/login-form";
 import { SignUpForm } from "@/components/sign-up-form";
+import { ForgotPassword } from "@/pages/Auth/Forgotpassword";
 import RightSide from "./layout";
 
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  // formType can be "login", "signup" or "forgot"
+  const [formType, setFormType] = useState<"login" | "signup" | "forgot">("login");
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2 w-screen">
@@ -21,16 +23,21 @@ export default function Auth() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
-            {isSignUp ? <SignUpForm /> : <LoginForm />}
-            <div className="mt-4 text-center text-sm">
-              {isSignUp ? "Already have an account? " : "Don't have an account? "}
-              <a
-                onClick={() => setIsSignUp(!isSignUp)}
-                className="text-blue-500 underline underline-offset-4 cursor-pointer hover:text-blue-600" 
-              >
-                {isSignUp ? "Sign In" : "Sign Up"}
-              </a>
-            </div>
+            {formType === "login" && (
+              <LoginForm
+                onForgotPassword={() => setFormType("forgot")}
+                // You can add a prop for switching to sign up if needed:
+                onSwitchForm={() => setFormType("signup")}
+              />
+            )}
+            {formType === "signup" && (
+              <SignUpForm
+                onSwitchForm={() => setFormType("login")}
+              />
+            )}
+            {formType === "forgot" && (
+              <ForgotPassword onBack={() => setFormType("login")} />
+            )}
           </div>
         </div>
       </div>
