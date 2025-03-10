@@ -25,13 +25,6 @@ app.get('/', (req, res) => {
     res.send('Server is running');
 });
 
-app.post("/api/send-otp", (req, res) => {
-  // Implement your OTP sending logic here
-  const { email } = req.body;
-  // Validate email, generate OTP, send email, etc.
-  console.log("Received OTP request for email:", email);
-  res.status(200).json({ message: "OTP sent" });
-});
 
 // Connect to the database and then start the server
 if (!DATABASE_URL) {
