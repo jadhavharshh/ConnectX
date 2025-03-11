@@ -1,31 +1,49 @@
 import { Request, Response, NextFunction } from "express";
 import TeacherSchema from "../models/TeacherSchema";
+import StudentSchema from "../models/StudentSchema";
 
 export const GET_SIGNUP_DATA = async (
-    request: Request,
-    response: Response,
-    next: NextFunction
+  request: Request,
+  response: Response,
+  next: NextFunction
 ): Promise<void> => {
-    try {
-        console.log("IN THE SIGN UP FUNCTION");
-        console.log(request.body);
+  try {
+    console.log("IN THE SIGN UP FUNCTION");
+    console.log(request.body);
 
-        // Assuming the request body contains teacher info
-        const { name, department, teacherId, password } = request.body;
+    // Check the role field to determine which schema to use
+    const { role } = request.body;
 
-        // Create a new Teacher instance
-        const newTeacher = new TeacherSchema({
-            name,
-            department,
-            teacherId,
-            password,
-        });
+    if (role === "teacher") {
+      const { name, department, teacherId, password } = request.body;
 
-        // Save the teacher data to the database
-        await newTeacher.save();
+      const newTeacher = new TeacherSchema({
+        name,
+        department,
+        teacherId,
+        password,
+      });
 
-        response.status(200).json({ message: "Sign up successful" });
-    } catch (error) {
-        next(error);
+      await newTeacher.save();
+      response.status(200).json({ message: "Teacher sign up successful" });
+    } else if (role === "student") {
+      const { name, studentId, email, password, year, division } = request.body;
+
+      const newStudent = new StudentSchema({
+        name,
+        studentId,
+        email,
+        password,
+        year,
+        division,
+      });
+
+      await newStudent.save();
+      response.status(200).json({ message: "Student sign up successful" });
+    } else {
+      response.status(400).json({ message: "Invalid role provided" });
     }
+  } catch (error) {
+    next(error);
+  }
 };

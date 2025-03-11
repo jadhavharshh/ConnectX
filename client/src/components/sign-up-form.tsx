@@ -89,9 +89,10 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
       console.error("SignUp resource is not ready");
       return;
     }
-    // For teachers, the teacherId field is used as email.
-    const emailToRegister = role === "student" ? studentData.email : teacherData.teacherId;
-    const passwordToRegister = role === "student" ? studentData.password : teacherData.password;
+    const emailToRegister =
+      role === "student" ? studentData.email : teacherData.teacherId;
+    const passwordToRegister =
+      role === "student" ? studentData.password : teacherData.password;
     setStep(3);
     try {
       await signUp.create({
@@ -100,11 +101,16 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 
-      // If teacher, send additional signup data to the server
-      console.log("BEFORE TEACHER")
       if (role === "teacher") {
-        console.log("IN THE IF TEACHER STATMENT")
-        await apiClient.post(SEND_SIGNUP_DATA, teacherData);
+        await apiClient.post(SEND_SIGNUP_DATA, { ...teacherData, role });
+      }
+      if (role === "student") {
+        await apiClient.post(SEND_SIGNUP_DATA, {
+          ...studentData,
+          role,
+          year: studentYear,
+          division: studentDivision,
+        });
       }
     } catch (error) {
       console.error("Sign up error", error);
