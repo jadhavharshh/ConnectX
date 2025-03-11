@@ -22,7 +22,7 @@ import {
 import { ChevronDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client"; // <-- new import
+import { apiClient } from "@/lib/api-client";
 import { SEND_SIGNUP_DATA } from "@/utils/constants";
 
 // Add the additional onSwitchForm prop to the component props
@@ -36,7 +36,9 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
   const [value, setValue] = useState<string>(""); // OTP value state
 
   // States for student sign-up
-  const [studentYear, setStudentYear] = useState<"first" | "second" | "third" | "fourth" | "">("");
+  const [studentYear, setStudentYear] = useState<
+    "first" | "second" | "third" | "fourth" | ""
+  >("");
   const [studentDivision, setStudentDivision] = useState<string>("");
 
   const yearOptions: Record<"first" | "second" | "third" | "fourth", string> = {
@@ -83,7 +85,8 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
     }
   };
 
-  // New function: registers the user via Clerk API and sends an OTP email.
+  // Registers the user via Clerk API and sends an OTP email.
+  // API calls have been removed from here.
   const handleRegistration = async () => {
     if (!signUp) {
       console.error("SignUp resource is not ready");
@@ -100,25 +103,13 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
         password: passwordToRegister,
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-
-      if (role === "teacher") {
-        await apiClient.post(SEND_SIGNUP_DATA, { ...teacherData, role });
-      }
-      if (role === "student") {
-        await apiClient.post(SEND_SIGNUP_DATA, {
-          ...studentData,
-          role,
-          year: studentYear,
-          division: studentDivision,
-        });
-      }
     } catch (error) {
       console.error("Sign up error", error);
       alert("There was an error during sign up. Please try again.");
     }
   };
 
-  // In step 3, this function verifies the OTP and sets the active session.
+  // In step 3, verifies the OTP and sends the additional signup data to the backend.
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!signUp) {
@@ -126,9 +117,24 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
       return;
     }
     try {
-      const completeSignUp = await signUp.attemptEmailAddressVerification({ code: value });
+      const completeSignUp = await signUp.attemptEmailAddressVerification({
+        code: value,
+      });
       if (completeSignUp.status === "complete") {
         await clerk.setActive({ session: completeSignUp.createdSessionId });
+        // Omit the password field from the payload using destructuring
+        if (role === "teacher") {
+          const { password, ...teacherPayload } = teacherData;
+          await apiClient.post(SEND_SIGNUP_DATA, { ...teacherPayload, role });
+        } else if (role === "student") {
+          const { password, ...studentPayload } = studentData;
+          await apiClient.post(SEND_SIGNUP_DATA, {
+            ...studentPayload,
+            role,
+            year: studentYear,
+            division: studentDivision,
+          });
+        }
         console.log("User signed up:", completeSignUp);
         navigate("/dashboard");
         toast.success("Account created successfully!");
@@ -243,7 +249,10 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
               <DropdownMenuContent className="w-56">
                 <DropdownMenuLabel>Current Division</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={studentDivision} onValueChange={setStudentDivision}>
+                <DropdownMenuRadioGroup
+                  value={studentDivision}
+                  onValueChange={setStudentDivision}
+                >
                   <DropdownMenuRadioItem value="A">A</DropdownMenuRadioItem>
                   <DropdownMenuRadioItem value="B">B</DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>
