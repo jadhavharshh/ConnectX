@@ -12,7 +12,7 @@ const TeacherSchema: Schema = new Schema(
     name: { type: String, required: true },
     department: { type: String, required: true },
     teacherId: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+    password: { type: String, required: false } // changed from required: true
   },
   { timestamps: true }
 );
