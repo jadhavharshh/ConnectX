@@ -5,8 +5,11 @@ import Home from './pages/Home/Home'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Error from './pages/Error/Error'
 import LoginPage from './pages/Auth/Auth'
-import { ForgotPassword } from './pages/Auth/Forgotpassword'
 import { useUser } from '@clerk/clerk-react'
+import Announcement from './pages/Announcements/Announcement'
+import Profile from './pages/Profile/Profile'
+import Chat from './pages/Chat/Chat'
+import Settings from './pages/Settings/Settings'
 
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoaded, user } = useUser()
@@ -45,10 +48,10 @@ function App() {
         <Route path='/' element={<Home />} />
         <Route path="/auth" element={<AuthRoute><LoginPage /></AuthRoute>}/>
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
-        <Route path="/announcements" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
-        <Route path="/profile" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
-        <Route path="/chat" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
-        <Route path="/settings" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/announcements" element={<PrivateRoute><Announcement /></PrivateRoute>}/>
+        <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>}/>
+        <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>}/>
+        <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>}/>
         <Route path="/404" element={<Error />} />
         <Route path='*' element={<Navigate to="/404" />} />
       </Routes>

@@ -2,11 +2,9 @@ import * as React from "react"
 import {
   GalleryVerticalEnd,
   SquareTerminal,
-  Settings2Icon,
   Settings2,
   NotebookIcon,
   User2Icon,
-  MessageCircle,
   MessageSquare,
 } from "lucide-react"
 
