@@ -44,15 +44,11 @@ function App() {
       <Routes>
         <Route path='/' element={<Home />} />
         <Route path="/auth" element={<AuthRoute><LoginPage /></AuthRoute>}/>
-        <Route 
-          path="/dashboard" 
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } 
-        />
-        <Route path="/forgotpassword" element={<ForgotPassword />} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/announcements" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/profile" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/chat" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
+        <Route path="/settings" element={<PrivateRoute><Dashboard /></PrivateRoute>}/>
         <Route path="/404" element={<Error />} />
         <Route path='*' element={<Navigate to="/404" />} />
       </Routes>

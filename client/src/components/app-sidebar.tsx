@@ -1,15 +1,13 @@
 import * as React from "react"
 import {
-  Bot,
   GalleryVerticalEnd,
-  Settings2,
   SquareTerminal,
-  MessageSquare,
-  Send,
+  Settings2Icon,
+  Settings2,
+  NotebookIcon,
+  User2Icon,
   MessageCircle,
-  Server,
-  Instagram,
-  MapIcon,
+  MessageSquare,
 } from "lucide-react"
 
 import { useUser } from "@clerk/clerk-react"
@@ -48,45 +46,27 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         icon: SquareTerminal,
       },
       {
-        title: "Profile Scraper",
-        url: "/profile-scraper",
-        icon: Bot,
+        title: "Announcements",
+        url: "/announcements",
+        icon: NotebookIcon,
       },
       {
-        title: "Add Proxies",
-        url: "/add-proxies",
-        icon: Server,
-      },
-      {
-        title: "Add Instagram Accounts",
-        url: "/add-accounts",
-        icon: Instagram,
-      },
-      {
-        title: "Generate Messages",
-        url: "/generate-messages",
+        title: "Chat",
+        url: "/chat",
         icon: MessageSquare,
-      },
+      },  
       {
-        title: "Send Messages",
-        url: "/send-messages",
-        icon: Send,
-      },
-      {
-        title: "AI Chatbot",
-        url: "/ai-chatbot",
-        icon: MessageCircle,
+        title: "Profile",
+        url: "/profile",
+        icon: User2Icon,
       },
       {
         title: "Settings",
         url: "/settings",
         icon: Settings2,
       },
-      {
-        title: "Dev Mode",
-        url: "/devmode",
-        icon: MapIcon,
-      },
+
+
     ],
   }
 
