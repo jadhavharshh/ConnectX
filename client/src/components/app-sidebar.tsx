@@ -36,9 +36,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     },
     teams: [
       {
-        name: "AutoGram",
+        name: "ConnectX",
         logo: GalleryVerticalEnd,
-        plan: "Owned by Harsh Jadhav",
+        plan: "Made by TOPGs",
       },
     ],
     navMain: [
