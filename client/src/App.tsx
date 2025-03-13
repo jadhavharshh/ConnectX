@@ -10,13 +10,14 @@ import Announcement from './pages/Announcements/Announcement'
 import Profile from './pages/Profile/Profile'
 import Chat from './pages/Chat/Chat'
 import Settings from './pages/Settings/Settings'
-
+import LoadingLoop from './components/ui/LoadingLoop'
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoaded, user } = useUser()
 
   if (!isLoaded) {
     // Optionally, replace this with a spinner or loading component.
-    return <div>Loading...</div>
+    return <LoadingLoop />
+
   }
 
   if (!user?.id) {
@@ -31,7 +32,7 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
 
   if (!isLoaded) {
     // Optionally, replace this with a spinner or loading component.
-    return <div>Loading...</div>
+    return <LoadingLoop />
   }
 
   if (user?.id) {
