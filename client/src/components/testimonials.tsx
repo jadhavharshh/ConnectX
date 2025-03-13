@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Card, CardContent } from '@/components/ui/card-gray'
+import { Card, CardContent } from '@/components/ui/card'
 
 type Testimonial = {
     name: string
