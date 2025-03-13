@@ -69,7 +69,7 @@ export default function HeroSection() {
                                     },
                                 },
                             }}
-                            className="absolute inset-0 -z-15">
+                            className="absolute inset-0 -z-15 overflow-hidden">
                             <img
                                 src={BGImage}
                                 alt="background"
@@ -80,7 +80,12 @@ export default function HeroSection() {
                         </AnimatedGroup>
 
                         {/* Black overlay - overlaps BGImage but below text */}
-                        <div className="absolute inset-0 -z-5 bg-black opacity-50"></div>
+                        <div
+                            className="absolute inset-0 z-10"
+                            style={{
+                                background: "linear-gradient(to top, #0a0a0a 0%, #0a0a0a 5%, transparent 100%)"
+                            }}
+                        ></div>
 
                         {/* Content wrapper with a higher z-index */}
                         <div className="relative z-10 mx-auto max-w-7xl px-6">
