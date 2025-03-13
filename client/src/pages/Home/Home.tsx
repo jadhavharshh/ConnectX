@@ -1,6 +1,7 @@
 // UserInfo.tsx
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
+import HeroSection from '@/components/hero-section';
 
 const Home: React.FC = () => {
   const { isLoaded, isSignedIn, user } = useUser();
@@ -15,19 +16,7 @@ const Home: React.FC = () => {
 
   return (
     <div>
-      <h2>User Information</h2>
-      <p>
-        <strong>First Name:</strong> {user.firstName}
-      </p>
-      <p>
-        <strong>Last Name:</strong> {user.lastName}
-      </p>
-      <p>
-        <strong>Email:</strong> {user.primaryEmailAddress?.emailAddress}
-      </p>
-      <p>
-        <strong>User ID:</strong> {user.id}
-      </p>
+      <HeroSection />
     </div>
   );
 };
