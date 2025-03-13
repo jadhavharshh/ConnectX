@@ -15,19 +15,20 @@ export const GET_SIGNUP_DATA = async (
     const { role } = request.body;
 
     if (role === "teacher") {
-      const { name, department, teacherId, password } = request.body;
+      const { name, department, teacherId, password, clerkUserId } = request.body;
 
       const newTeacher = new TeacherSchema({
         name,
         department,
         teacherId,
         password,
+        clerkUserId, // storing the clerkUserId as provided
       });
 
       await newTeacher.save();
       response.status(200).json({ message: "Teacher sign up successful" });
     } else if (role === "student") {
-      const { name, studentId, email, password, year, division } = request.body;
+      const { name, studentId, email, password, year, division, clerkUserId } = request.body;
 
       const newStudent = new StudentSchema({
         name,
@@ -36,6 +37,7 @@ export const GET_SIGNUP_DATA = async (
         password,
         year,
         division,
+        clerkUserId, // storing the clerkUserId as provided
       });
 
       await newStudent.save();
