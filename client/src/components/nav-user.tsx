@@ -29,6 +29,10 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+// Added imports for logout functionality
+import { useClerk } from "@clerk/clerk-react"
+import { useNavigate } from "react-router-dom"
+
 export function NavUser({
   user,
 }: {
@@ -37,6 +41,14 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  
+  // Setup logout using Clerk and react-router-dom
+  const clerk = useClerk()
+  const navigate = useNavigate()
+  const handleLogout = async () => {
+    await clerk.signOut()
+    navigate("/auth") // update the route as needed
+  }
 
   return (
     <SidebarMenu>
@@ -95,7 +107,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
