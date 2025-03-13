@@ -122,10 +122,16 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
       });
       if (completeSignUp.status === "complete") {
         await clerk.setActive({ session: completeSignUp.createdSessionId });
+        // Get the Clerk user id from the sign-up response
+        const clerkUserId = completeSignUp.createdUserId;
         // Omit the password field from the payload using destructuring
         if (role === "teacher") {
           const { password, ...teacherPayload } = teacherData;
-          await apiClient.post(SEND_SIGNUP_DATA, { ...teacherPayload, role });
+          await apiClient.post(SEND_SIGNUP_DATA, { 
+            ...teacherPayload, 
+            role,
+            clerkUserId // sending Clerk id to backend
+          });
         } else if (role === "student") {
           const { password, ...studentPayload } = studentData;
           await apiClient.post(SEND_SIGNUP_DATA, {
@@ -133,6 +139,7 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
             role,
             year: studentYear,
             division: studentDivision,
+            clerkUserId // sending Clerk id to backend
           });
         }
         console.log("User signed up:", completeSignUp);
