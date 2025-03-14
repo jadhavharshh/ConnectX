@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { GET_SIGNUP_DATA } from "../controllers/AuthController";
+import { STORE_SIGNUP_DATA } from "../controllers/AuthController";
 
 const AuthRoutes = Router();
 
-AuthRoutes.post('/send-signup-data', GET_SIGNUP_DATA )
+AuthRoutes.post('/send-signup-data', STORE_SIGNUP_DATA )
 export default AuthRoutes;
