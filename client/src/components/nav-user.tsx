@@ -28,6 +28,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import useStore from "@/store/store"
 
 // Added imports for logout functionality
 import { useClerk } from "@clerk/clerk-react"
@@ -41,14 +42,25 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  
+  const { userData } = useStore();
+
   // Setup logout using Clerk and react-router-dom
   const clerk = useClerk()
   const navigate = useNavigate()
   const handleLogout = async () => {
     await clerk.signOut()
-    navigate("/auth") // update the route as needed
+    navigate("/auth")
   }
+
+  const name = userData?.data?.name;
+  // Compute two initials from name (first letters of first two words) or default to "CN"
+  const initials = name
+    ? name
+        .split(" ")
+        .map((word:any) => word.charAt(0).toUpperCase())
+        .join("")
+        .slice(0, 2)
+    : "CN";
 
   return (
     <SidebarMenu>
@@ -60,7 +72,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate text-xs">{user.email}</span>
@@ -77,9 +89,10 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate text-xs">{name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
               </div>
