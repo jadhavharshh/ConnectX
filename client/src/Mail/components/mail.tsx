@@ -101,6 +101,7 @@ export function Mail({
               isCollapsed ? "h-[52px]" : "px-2"
             )}
           >
+            
             <header className="w-full flex h-16 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
               <div className="flex items-center">
                 <SidebarTrigger className="-ml-1" />
