@@ -11,7 +11,7 @@ export const FETCH_USER_INFO = async (
     console.log("IN THE FETCH_USER_INFO CONTROLLER");
     const { userId } = request.query;
     const trimmedUserId = (userId as string)?.trim();
-    console.log(trimmedUserId);
+    // console.log(trimmedUserId);
 
     if (!trimmedUserId) {
       response.status(400).json({ error: "Missing or invalid userId" });
