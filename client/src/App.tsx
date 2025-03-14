@@ -1,23 +1,26 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import { JSX } from 'react'
-import './App.css'
+import { useUser } from '@clerk/clerk-react'
 import Home from './pages/Home/Home'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Error from './pages/Error/Error'
 import LoginPage from './pages/Auth/Auth'
-import { useUser } from '@clerk/clerk-react'
 import Announcement from './pages/Announcements/Announcement'
 import Profile from './pages/Profile/Profile'
 import Chat from './pages/Chat/Chat'
 import Settings from './pages/Settings/Settings'
 import LoadingLoop from './components/ui/LoadingLoop'
+import { apiClient } from './lib/api-client'
+import { FETCH_USER_INFO } from './utils/constants'
+import useStore from './store/store'
+import { JSX } from 'react'
+
+// Ensure to replace or import your apiClient and FETCH_USER_INFO endpoint.
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoaded, user } = useUser()
 
   if (!isLoaded) {
-    // Optionally, replace this with a spinner or loading component.
     return <LoadingLoop />
-
   }
 
   if (!user?.id) {
@@ -31,7 +34,6 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoaded, user } = useUser()
 
   if (!isLoaded) {
-    // Optionally, replace this with a spinner or loading component.
     return <LoadingLoop />
   }
 
@@ -43,6 +45,33 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
 }
 
 function App() {  
+  const { isLoaded, user } = useUser()
+  const setUserData = useStore((state) => state.setUserData)
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (user?.id) {
+        try {
+          console.log("FETCH_USER_INFO FRONTEND CALL DONE")
+          const response = await apiClient.get(FETCH_USER_INFO, { params: { userId: user.id } })
+          console.log("Backend data:", response.data)
+          // Update Zustand store with fetched data
+          setUserData(response.data)
+        } catch (error) {
+          console.error("Error calling backend:", error)
+        }
+      }
+    }
+
+    if (isLoaded) {
+      fetchUserData()
+    }
+  }, [isLoaded, user, setUserData])
+
+  if (!isLoaded) {
+    return <LoadingLoop />
+  }
+
   return (
     <BrowserRouter>
       <Routes>
