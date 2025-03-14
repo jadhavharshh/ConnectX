@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import TeacherSchema from "../models/TeacherSchema";
 import StudentSchema from "../models/StudentSchema";
 
-export const GET_SIGNUP_DATA = async (
+export const STORE_SIGNUP_DATA = async (
   request: Request,
   response: Response,
   next: NextFunction
@@ -24,6 +24,9 @@ export const GET_SIGNUP_DATA = async (
         password,
         clerkUserId, // storing the clerkUserId as provided
       });
+      console.log("-----------------");
+      console.log(newTeacher);
+      console.log("-----------------");
 
       await newTeacher.save();
       response.status(200).json({ message: "Teacher sign up successful" });
@@ -39,6 +42,9 @@ export const GET_SIGNUP_DATA = async (
         division,
         clerkUserId, // storing the clerkUserId as provided
       });
+      console.log("-----------------");
+      console.log(newStudent);
+      console.log("-----------------");
 
       await newStudent.save();
       response.status(200).json({ message: "Student sign up successful" });
