@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import AuthRoutes from './Routes/AuthRoutes';
+import DataRoutes from './Routes/DataRoutes';
 
 dotenv.config();
 
@@ -24,7 +25,7 @@ app.use(express.json());
 
 
 app.use("/api/auth", AuthRoutes);
-
+app.use("/api/data", DataRoutes);
 
 app.get('/', (req, res) => {
     res.send('Server is running');
