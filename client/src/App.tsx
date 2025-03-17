@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { useUser } from '@clerk/clerk-react'
 import Home from './pages/Home/Home'
 import Dashboard from './pages/Dashboard/Dashboard'
+
 import Error from './pages/Error/Error'
 import LoginPage from './pages/Auth/Auth'
 import Announcement from './pages/Announcements/Announcement'
