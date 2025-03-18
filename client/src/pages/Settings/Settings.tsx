@@ -28,7 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { BellIcon, MoonIcon, SunIcon, LockIcon, UserIcon, MailIcon, GlobeIcon, ShieldIcon } from "lucide-react"
+import { BellIcon, SunIcon, UserIcon, GlobeIcon, ShieldIcon } from "lucide-react"
 
 export default function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true)
