@@ -2,11 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import TeacherSchema from "../models/TeacherSchema";
 import StudentSchema from "../models/StudentSchema";
 
-export const FETCH_USER_INFO = async (
-  request: Request,
-  response: Response,
-  next: NextFunction
-): Promise<void> => {
+export const FETCH_USER_INFO = async ( request: Request, response: Response,  next: NextFunction): Promise<void> => {
   try {
     console.log("IN THE FETCH_USER_INFO CONTROLLER");
     const { userId } = request.query;
