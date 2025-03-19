@@ -96,6 +96,8 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
         // Create URL path for the uploaded image
         imageUrl = `/uploads/announcements/${request.file.filename}`;
       }
+      console.log("THIS IS THE IMAGE URL")
+      console.log(imageUrl);
       
       if (!imageUrl) {
         response.status(400).json({ message: "Image is required" });
@@ -160,5 +162,29 @@ export const FETCH_USER_INFO = async ( request: Request, response: Response,  ne
     response.status(404).json({ error: "User not found in the database" });
   } catch (error) {
     next(error);
+  }
+};
+
+
+// Add this function to your existing DataController.ts file
+
+export const FETCH_ANNOUNCEMENTS = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
+  try {
+    console.log("IN THE FETCH_ANNOUNCEMENTS CONTROLLER");
+    
+    // Get announcements from the database, sorted by newest first
+    const announcements = await Announcement.find({}).sort({ createdAt: -1 });
+    
+    response.status(200).json({
+      message: "Announcements fetched successfully",
+      announcements
+    });
+    
+  } catch (error: any) {
+    console.error("Error fetching announcements:", error);
+    response.status(500).json({ 
+      message: "Failed to fetch announcements",
+      error: error.message
+    });
   }
 };
