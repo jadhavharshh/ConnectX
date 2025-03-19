@@ -22,16 +22,21 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Calendar, Users, Upload } from "lucide-react"
+import { Calendar, Users, Upload, Loader2 } from "lucide-react"
 import { format } from "date-fns"
+import { toast } from "sonner"
+import { apiClient } from "@/lib/api-client"
+import { CREATE_ANNOUCEMENT } from "@/utils/constants" 
 
 export default function CreateAnnouncements() {
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [imageUrl, setImageUrl] = useState("https://images.unsplash.com/photo-1600267185393-e158a98703de?w=800&auto=format&fit=crop&q=60")
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("https://images.unsplash.com/photo-1600267185393-e158a98703de?w=800&auto=format&fit=crop&q=60")
   const [category, setCategory] = useState("Maintenance")
   const [priority, setPriority] = useState("normal")
   const [author, setAuthor] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
   
   // Current date formatted for display
   const currentDate = format(new Date(), "MMMM d, yyyy")
@@ -39,26 +44,77 @@ export default function CreateAnnouncements() {
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      // Create a URL for the uploaded file
+      setImageFile(file)
+      // Create a URL for preview
       const fileUrl = URL.createObjectURL(file)
-      setImageUrl(fileUrl)
+      setImagePreviewUrl(fileUrl)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Here you can call your backend API to create an announcement
-    console.log("Form Data", { 
-      title, 
-      content, 
-      imageUrl, 
-      category, 
-      priority,
-      author,
-      date: currentDate
-    })
-    // In a real implementation, you would use FormData to upload the image file
+  // Update the handleSubmit function only:
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault()
+  
+  if (!title || !content || !author) {
+    toast.error("Please fill in all required fields")
+    return
   }
+  
+  try {
+    setIsSubmitting(true)
+    
+    // Create FormData for file upload
+    const formData = new FormData()
+    formData.append("title", title)
+    formData.append("content", content)
+    formData.append("category", category)
+    formData.append("priority", priority)
+    formData.append("author", author)
+    formData.append("date", currentDate)
+    
+    // Append image file if available
+    if (imageFile) {
+      // Add file size validation
+      if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error("Image size exceeds 5MB limit")
+        setIsSubmitting(false)
+        return
+      }
+      formData.append("image", imageFile)
+    } else if (imagePreviewUrl) {
+      // If using default image URL or external URL, send the URL
+      formData.append("imageUrl", imagePreviewUrl)
+    }
+    
+    // Make API call with proper content type for multipart data
+    const response = await apiClient.post(CREATE_ANNOUCEMENT, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    })
+    
+    console.log("Announcement created:", response.data)
+    
+    toast.success("Announcement published successfully!")
+    
+    // Reset form fields
+    setTitle("")
+    setContent("")
+    setImageFile(null)
+    setImagePreviewUrl("https://images.unsplash.com/photo-1600267185393-e158a98703de?w=800&auto=format&fit=crop&q=60")
+    setCategory("Maintenance")
+    setPriority("normal")
+    setAuthor("")
+    
+  } catch (error: any) {
+    console.error("Error creating announcement:", error)
+    toast.error(error.response?.data?.message || "Error publishing announcement. Please try again.")
+  } finally {
+    setIsSubmitting(false)
+  }
+}
+
 
   return (
     <SidebarProvider>
@@ -187,7 +243,16 @@ export default function CreateAnnouncements() {
                 </div>
                 
                 <div className="flex justify-end">
-                  <Button type="submit">Publish Announcement</Button>
+                  <Button type="submit" disabled={isSubmitting}>
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      "Publish Announcement"
+                    )}
+                  </Button>
                 </div>
               </form>
             </TabsContent>
@@ -199,7 +264,7 @@ export default function CreateAnnouncements() {
                 <Card className="overflow-hidden">
                   <div className="relative h-64 w-full">
                     <img 
-                      src={imageUrl || "https://placehold.co/800x400?text=No+Image+Selected"} 
+                      src={imagePreviewUrl || "https://placehold.co/800x400?text=No+Image+Selected"} 
                       alt={title || "Announcement Preview"}
                       className="absolute inset-0 h-full w-full object-cover"
                       onError={(e) => {
