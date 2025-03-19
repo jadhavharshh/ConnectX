@@ -42,7 +42,9 @@ export default function Announcement() {
   const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
-    console.log("Fetching announcements...");
+    console.log("Setting up announcements fetching...");
+    
+    // Define the fetch function
     const fetchAnnouncements = async () => {
       try {
         setIsLoading(true);
@@ -58,7 +60,20 @@ export default function Announcement() {
       }
     };
     
+    // Fetch immediately when component mounts
     fetchAnnouncements();
+    
+    // Set up interval for subsequent fetches (every 5 minutes)
+    const intervalId = setInterval(() => {
+      console.log("Refreshing announcements (5-minute interval)...");
+      fetchAnnouncements();
+    }, 5 * 60 * 1000); // 5 minutes in milliseconds
+    
+    // Clean up interval on component unmount
+    return () => {
+      console.log("Cleaning up announcements fetch interval");
+      clearInterval(intervalId);
+    };
   }, []);
   
   const toggleReadMore = (id: string) => {
