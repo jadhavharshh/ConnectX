@@ -15,6 +15,8 @@ import { apiClient } from './lib/api-client'
 import { FETCH_USER_INFO } from './utils/constants'
 import useStore from './store/store'
 import { JSX } from 'react'
+import CreateTasks from './pages/Create-Tasks/CreateTasks'
+import CreateAnnouncements from './pages/Create-Announcements/CreateAnnouncements'
 
 // Ensure to replace or import your apiClient and FETCH_USER_INFO endpoint.
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -82,6 +84,8 @@ function App() {
         <Route path="/announcements" element={<PrivateRoute><Announcement /></PrivateRoute>}/>
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>}/>
         <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>}/>
+        <Route path="/create-announcement" element={<PrivateRoute><CreateAnnouncements /></PrivateRoute>}/>
+        <Route path="/create-tasks" element={<PrivateRoute><CreateTasks /></PrivateRoute>}/>
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>}/>
         <Route path="/404" element={<Error />} />
         <Route path='*' element={<Navigate to="/404" />} />
