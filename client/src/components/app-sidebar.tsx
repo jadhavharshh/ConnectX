@@ -6,9 +6,12 @@ import {
   NotebookIcon,
   User2Icon,
   MessageSquare,
+  Edit3,
+  CheckSquare,
 } from "lucide-react"
 
 import { useUser } from "@clerk/clerk-react"
+import useStore from "@/store/store"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -24,6 +27,53 @@ import {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useUser()
   const email = user?.primaryEmailAddress?.emailAddress ?? ""
+  const userData = useStore((state) => state.userData)
+  const isTeacher = userData?.role === "teacher"
+
+  // Define the initial nav items
+  const baseNavMain = [
+    {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: SquareTerminal,
+    },
+    {
+      title: "Announcements",
+      url: "/announcements",
+      icon: NotebookIcon,
+    },
+    {
+      title: "Chat",
+      url: "/chat",
+      icon: MessageSquare,
+    },  
+    {
+      title: "Profile",
+      url: "/profile",
+      icon: User2Icon,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings2,
+    },
+  ]
+
+  // If the user is a teacher, add teacher-only options.
+  const teacherNav = isTeacher
+    ? [
+        {
+          title: "Create Announcement",
+          url: "/create-announcement",
+          icon: Edit3,
+        },
+        {
+          title: "Create Tasks",
+          url: "/create-tasks",
+          icon: CheckSquare,
+        },
+      ]
+    : []
 
   const data = {
     user: {
@@ -37,35 +87,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         plan: "Made by TOPGs",
       },
     ],
-    navMain: [
-      {
-        title: "Dashboard",
-        url: "/dashboard",
-        icon: SquareTerminal,
-      },
-      {
-        title: "Announcements",
-        url: "/announcements",
-        icon: NotebookIcon,
-      },
-      {
-        title: "Chat",
-        url: "/chat",
-        icon: MessageSquare,
-      },  
-      {
-        title: "Profile",
-        url: "/profile",
-        icon: User2Icon,
-      },
-      {
-        title: "Settings",
-        url: "/settings",
-        icon: Settings2,
-      },
-
-
-    ],
+    navMain: [...baseNavMain, ...teacherNav],
   }
 
   return (
