@@ -43,6 +43,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: NotebookIcon,
     },
     {
+      title: "Tasks",
+      url: "/tasks",
+      icon: CheckSquare,
+    },
+    {
       title: "Chat",
       url: "/chat",
       icon: MessageSquare,
