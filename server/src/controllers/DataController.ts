@@ -56,9 +56,9 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
   }
 };
 
-const upload = multer({ 
-  storage, 
-  fileFilter, 
+const upload = multer({
+  storage,
+  fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 }).single("image");
 
@@ -66,7 +66,7 @@ const upload = multer({
 export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
   console.log("IN THE CREATE_ANNOUCEMENT CONTROLLER");
 
-  
+
   upload(request, response, async (err) => {
     if (err instanceof multer.MulterError) {
       // A Multer error occurred when uploading
@@ -79,31 +79,32 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
       response.status(500).json({ message: `Unknown upload error: ${err.message}` });
       return;
     }
-    
+
     try {
       const { title, content, category, priority, author, date } = request.body;
-      
+
       // Validation
       if (!title || !content || !author) {
         response.status(400).json({ message: "Missing required fields" });
         return;
       }
-      
+
       let imageUrl = request.body.imageUrl; // Default URL if provided
-      
+
       // If file was uploaded, use its path
+      // Inside the CREATE_ANNOUCEMENT function
       if (request.file) {
         // Create URL path for the uploaded image
-        imageUrl = `/uploads/announcements/${request.file.filename}`;
+        imageUrl = `${request.protocol}://${request.get('host')}/uploads/announcements/${request.file.filename}`;
       }
       console.log("THIS IS THE IMAGE URL")
       console.log(imageUrl);
-      
+
       if (!imageUrl) {
         response.status(400).json({ message: "Image is required" });
         return;
       }
-      
+
       // Create the announcement in the database
       const announcement = await Announcement.create({
         title,
@@ -114,7 +115,7 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
         date,
         imageUrl
       });
-      
+
       response.status(201).json({
         message: "Announcement created successfully",
         announcement
@@ -123,7 +124,7 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
       console.log(request.file);
     } catch (error: any) {
       console.error("Error creating announcement:", error);
-      response.status(500).json({ 
+      response.status(500).json({
         message: "Failed to create announcement",
         error: error.message
       });
@@ -132,7 +133,7 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
 };
 
 
-export const FETCH_USER_INFO = async ( request: Request, response: Response,  next: NextFunction): Promise<void> => {
+export const FETCH_USER_INFO = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
   try {
     console.log("IN THE FETCH_USER_INFO CONTROLLER");
     const { userId } = request.query;
@@ -171,18 +172,18 @@ export const FETCH_USER_INFO = async ( request: Request, response: Response,  ne
 export const FETCH_ANNOUNCEMENTS = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
   try {
     console.log("IN THE FETCH_ANNOUNCEMENTS CONTROLLER");
-    
+
     // Get announcements from the database, sorted by newest first
     const announcements = await Announcement.find({}).sort({ createdAt: -1 });
-    
+
     response.status(200).json({
       message: "Announcements fetched successfully",
       announcements
     });
-    
+
   } catch (error: any) {
     console.error("Error fetching announcements:", error);
-    response.status(500).json({ 
+    response.status(500).json({
       message: "Failed to fetch announcements",
       error: error.message
     });
