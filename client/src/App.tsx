@@ -48,6 +48,16 @@ const AuthRoute = ({ children }: { children: JSX.Element }) => {
   return children
 }
 
+// New TeacherRoute to protect teacher-specific pages.
+const TeacherRoute = ({ children }: { children: JSX.Element }) => {
+  const userData = useStore((state) => state.userData)
+  // Check if the role of the current user is teacher.
+  if (userData?.role !== "teacher") {
+     return <Navigate to="/dashboard" />
+  }
+  return children
+}
+
 function App() {  
   const { isLoaded, user } = useUser()
   const setUserData = useStore((state) => state.setUserData)
@@ -86,8 +96,8 @@ function App() {
         <Route path="/tasks" element={<PrivateRoute><Tasks /></PrivateRoute>}/>
         <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>}/>
         <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>}/>
-        <Route path="/create-announcement" element={<PrivateRoute><CreateAnnouncements /></PrivateRoute>}/>
-        <Route path="/create-tasks" element={<PrivateRoute><CreateTasks /></PrivateRoute>}/>
+        <Route path="/create-announcement" element={<PrivateRoute><TeacherRoute><CreateAnnouncements /></TeacherRoute></PrivateRoute>}/>
+        <Route path="/create-tasks" element={<PrivateRoute><TeacherRoute><CreateTasks /></TeacherRoute></PrivateRoute>}/>
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>}/>
         <Route path="/404" element={<Error />} />
         <Route path='*' element={<Navigate to="/404" />} />
