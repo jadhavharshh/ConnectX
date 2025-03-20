@@ -29,13 +29,19 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { BellIcon, SunIcon, UserIcon, GlobeIcon, ShieldIcon } from "lucide-react"
+import { DarkMode } from "./components/darkmode"
+import { LightMode } from "./components/lightmode"
+import { SystemMode } from "./components/systemmode"
+import { useTheme } from "@/components/theme-provider"
 
 export default function Settings() {
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
+  // const [darkMode, setDarkMode] = useState(false)
+  const { theme, setTheme } = useTheme()
+
   const [twoFactorAuth, setTwoFactorAuth] = useState(false)
-  
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -86,7 +92,7 @@ export default function Settings() {
                 Privacy
               </TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="account" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -108,8 +114,8 @@ export default function Settings() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bio">Bio</Label>
-                    <textarea 
-                      id="bio" 
+                    <textarea
+                      id="bio"
                       className="flex min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                       placeholder="Tell us about yourself"
                       defaultValue="Software developer with interest in AI and machine learning."
@@ -121,7 +127,7 @@ export default function Settings() {
                   <Button>Save Changes</Button>
                 </CardFooter>
               </Card>
-              
+
               <Card>
                 <CardHeader>
                   <CardTitle>Connected Accounts</CardTitle>
@@ -154,7 +160,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="notifications" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -169,10 +175,10 @@ export default function Settings() {
                       <Label htmlFor="email-notifications">Email Notifications</Label>
                       <p className="text-xs text-muted-foreground">Receive notifications via email.</p>
                     </div>
-                    <Switch 
-                      id="email-notifications" 
-                      checked={emailNotifications} 
-                      onCheckedChange={setEmailNotifications} 
+                    <Switch
+                      id="email-notifications"
+                      checked={emailNotifications}
+                      onCheckedChange={setEmailNotifications}
                     />
                   </div>
                   <Separator />
@@ -181,10 +187,10 @@ export default function Settings() {
                       <Label htmlFor="push-notifications">Push Notifications</Label>
                       <p className="text-xs text-muted-foreground">Receive notifications on your device.</p>
                     </div>
-                    <Switch 
-                      id="push-notifications" 
-                      checked={pushNotifications} 
-                      onCheckedChange={setPushNotifications} 
+                    <Switch
+                      id="push-notifications"
+                      checked={pushNotifications}
+                      onCheckedChange={setPushNotifications}
                     />
                   </div>
                 </CardContent>
@@ -222,7 +228,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="appearance" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -232,17 +238,42 @@ export default function Settings() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="dark-mode">Dark Mode</Label>
-                      <p className="text-xs text-muted-foreground">Use dark theme throughout the application.</p>
-                    </div>
-                    <Switch 
-                      id="dark-mode" 
-                      checked={darkMode} 
-                      onCheckedChange={setDarkMode} 
-                    />
-                  </div>
+                <div className="space-y-4">
+  <div className="space-y-2">
+    <Label>Theme</Label>
+    <p className="text-xs text-muted-foreground">Select how ConnectX appears to you</p>
+  </div>
+  <div className="grid grid-cols-3 gap-4">
+  <div 
+      className={`flex flex-col items-center justify-center cursor-pointer rounded-md border-2 p-3 transition-all ${theme === "system" ? "border-primary" : "border-transparent hover:border-muted"}`}
+      onClick={() => setTheme("system")}
+    >
+      <div className="flex justify-center w-full">
+        <SystemMode />
+      </div>
+      <p className="mt-2 text-center text-sm font-medium">System</p>
+    </div>
+    <div 
+      className={`flex flex-col items-center justify-center cursor-pointer rounded-md border-2 p-3 transition-all ${theme === "light" ? "border-primary" : "border-transparent hover:border-muted"}`}
+      onClick={() => setTheme("light")}
+    >
+      <div className="flex justify-center w-full">
+        <LightMode />
+      </div>
+      <p className="mt-2 text-center text-sm font-medium">Light</p>
+    </div>
+    <div 
+      className={`flex flex-col items-center justify-center cursor-pointer rounded-md border-2 p-3 transition-all ${theme === "dark" ? "border-primary" : "border-transparent hover:border-muted"}`}
+      onClick={() => setTheme("dark")}
+    >
+      <div className="flex justify-center w-full">
+        <DarkMode />
+      </div>
+      <p className="mt-2 text-center text-sm font-medium">Dark</p>
+    </div>
+
+  </div>
+</div>
                   <Separator />
                   <div className="space-y-2">
                     <Label htmlFor="font-size">Font Size</Label>
@@ -288,7 +319,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
             </TabsContent>
-            
+
             <TabsContent value="privacy" className="space-y-4">
               <Card>
                 <CardHeader>
@@ -303,10 +334,10 @@ export default function Settings() {
                       <Label htmlFor="two-factor">Two-Factor Authentication</Label>
                       <p className="text-xs text-muted-foreground">Add an extra layer of security to your account.</p>
                     </div>
-                    <Switch 
-                      id="two-factor" 
-                      checked={twoFactorAuth} 
-                      onCheckedChange={setTwoFactorAuth} 
+                    <Switch
+                      id="two-factor"
+                      checked={twoFactorAuth}
+                      onCheckedChange={setTwoFactorAuth}
                     />
                   </div>
                   <Separator />
