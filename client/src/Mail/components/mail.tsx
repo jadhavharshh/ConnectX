@@ -21,6 +21,7 @@ import { MailList } from "./mail-list"
 import { type Mail } from "../data"
 import { useMail } from "../use-mail"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import { AddContactDialog } from "@/pages/Chat/components/AddContactDialog"
 
 interface MailProps {
   accounts: {
@@ -38,12 +39,17 @@ export function Mail({
   mails,
   defaultLayout = [40, 60], // Updated to only have two panels
 }: MailProps) {
-  const [mail] = useMail()
+  const [mail, setMail] = useMail()
+
+  const handleAddContact = (userId: string) => {
+    // In a real application, this would create a new conversation or add the user to contacts
+    console.log(`Adding contact with ID: ${userId}`)
+    // You might want to fetch the user data and add a new mail item
+  }
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className="h-full max-h-screen">
-
         
         {/* Two-panel layout instead of three */}
         <ResizablePanelGroup
@@ -61,7 +67,13 @@ export function Mail({
                 {/* SidebarTrigger next to the Inbox text */}
                 <SidebarTrigger className="mr-2" />
                 <h1 className="text-xl font-bold">Inbox</h1>
-                <TabsList className="ml-auto">
+                
+                {/* Add the AddContactDialog button here */}
+                <div className="ml-auto mr-2">
+                  <AddContactDialog onAddContact={handleAddContact} />
+                </div>
+                
+                <TabsList>
                   <TabsTrigger
                     value="all"
                     className="text-zinc-600 dark:text-zinc-200"
