@@ -9,3 +9,6 @@ export const CREATE_ANNOUCEMENT = `${DATA_API}/create-announcement`;
 export const FETCH_ANNOUNCEMENTS = `${DATA_API}/fetch-announcements`;
 export const CREATE_TASKS = `${DATA_API}/create-task`;
 export const FETCH_TASKS = `${DATA_API}/fetch-task`;
+
+export const CHAT_API = "api/chat";
+export const FETCH_CHAT = `${CHAT_API}/fetch-chats`;
