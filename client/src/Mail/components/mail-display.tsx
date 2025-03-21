@@ -116,7 +116,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
   return (
     <div className="flex h-full flex-col max-h-screen overflow-hidden">
       <div className="flex items-center p-3 border-b">
-      {mail ? (
+        {mail ? (
           <div className="flex items-start gap-4 text-sm">
             <Avatar>
               <AvatarImage alt={mail.name} />
@@ -129,25 +129,15 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </Avatar>
             <div className="grid gap-1">
               <div className="font-semibold">{mail.name}</div>
-              <div className="line-clamp-1 text-xs">{mail.subject}</div>
-              <div className="line-clamp-1 text-xs">
-                <span className="font-medium">Status:</span> 
-                <span className="text-green-500 ml-1">Online</span>
-              </div>
+              <div className="line-clamp-1 text-xs">{mail.id}</div>
             </div>
-            {mail.date && (
-              <div className="ml-auto text-xs text-muted-foreground">
-                Last active: {format(new Date(mail.date), "h:mm a")}
-              </div>
-            )}
           </div>
-      ) : (
+        ) : (
           <div className="p-8 text-center text-muted-foreground">
             No conversation selected
           </div>
         )}
         <div className="ml-auto flex items-center gap-2">
-
         </div>
         <Separator orientation="vertical" className="mx-2 h-6" />
         <DropdownMenu>
