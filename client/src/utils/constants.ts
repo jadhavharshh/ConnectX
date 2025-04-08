@@ -12,3 +12,4 @@ export const FETCH_TASKS = `${DATA_API}/fetch-task`;
 
 export const CHAT_API = "api/chat";
 export const FETCH_CHAT = `${CHAT_API}/fetch-chats`;
+export const FETCH_RECENT_CHATS = `${CHAT_API}/recent`;

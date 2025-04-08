@@ -54,6 +54,11 @@ export function Mail({
   const [mails, setMails] = useState<Mail[]>([]) // Start with empty mails array
 
   // Fetch contacts when component mounts
+
+  useEffect(() => {
+    setMails(initialMails)
+  }, [initialMails])
+  
   useEffect(() => {
     const fetchContacts = async () => {
       try {
