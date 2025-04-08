@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useState, useEffect } from "react"
 import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,6 +23,15 @@ import { type Mail } from "../data"
 import { useMail } from "../use-mail"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { AddContactDialog } from "@/pages/Chat/components/AddContactDialog"
+import { apiClient } from "@/lib/api-client"
+import { FETCH_CHAT } from "@/utils/constants"
+
+interface Contact {
+  id: string;
+  name: string;
+  email: string;
+  status: string;
+}
 
 interface MailProps {
   accounts: {
@@ -36,15 +46,60 @@ interface MailProps {
 }
 
 export function Mail({
-  mails,
+  mails: initialMails,
   defaultLayout = [40, 60], // Updated to only have two panels
 }: MailProps) {
   const [mail, setMail] = useMail()
+  const [contacts, setContacts] = useState<Contact[]>([])
+  const [mails, setMails] = useState<Mail[]>([]) // Start with empty mails array
+
+  // Fetch contacts when component mounts
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await apiClient.get(FETCH_CHAT)
+        setContacts(response.data.contacts.map((user: any) => ({
+          id: user._id || user.id,
+          name: user.name,
+          email: user.email || user.teacherId || user.studentId,
+          status: user.status || "online",
+        })))
+      } catch (error) {
+        console.error("Error fetching contacts:", error)
+      }
+    }
+    
+    fetchContacts()
+  }, [])
 
   const handleAddContact = (userId: string) => {
-    // In a real application, this would create a new conversation or add the user to contacts
-    console.log(`Adding contact with ID: ${userId}`)
-    // You might want to fetch the user data and add a new mail item
+    // Find the user from contacts
+    const contact = contacts.find((contact: Contact) => contact.id === userId);
+    
+    if (contact) {
+      // Create a new mail item for this contact
+      const newMail: Mail = {
+        id: contact.id,
+        name: contact.name,
+        email: contact.email,
+        subject: "New conversation",
+        text: "Start chatting with this contact",
+        date: new Date().toISOString(),
+        read: true,
+        labels: []
+      };
+      
+      // Add this new mail to the mails array if it doesn't already exist
+      if (!mails.some(m => m.id === newMail.id)) {
+        setMails(prev => [...prev, newMail]);
+      }
+      
+      // Select this mail immediately
+      setMail({
+        ...mail,
+        selected: newMail.id
+      });
+    }
   }
 
   return (

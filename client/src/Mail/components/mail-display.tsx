@@ -1,3 +1,4 @@
+import { useEffect, useState, useRef } from "react"
 import { format } from "date-fns"
 import {
   MoreVertical,
@@ -5,6 +6,7 @@ import {
   Paperclip
 } from "lucide-react"
 
+// Components and UI
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -21,8 +23,16 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
+
+// Types and data
 import { Mail } from "../data"
-import { useState, useRef, useEffect } from "react"
+
+// Auth and API
+import { useAuth } from "@clerk/clerk-react"
+import { apiClient } from "@/lib/api-client"
+
+// Socket services
+import { initializeSocket, getSocket } from "@/Context/SocketContext"
 
 interface MailDisplayProps {
   mail: Mail | null
@@ -36,85 +46,258 @@ interface ChatMessage {
 }
 
 export function MailDisplay({ mail }: MailDisplayProps) {
-  const today = new Date()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { userId } = useAuth() // Get current user ID from Clerk
   
-  // Sample chat messages
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: '1',
-      content: "Hello! How can I assist you today?",
-      sender: 'bot',
-      timestamp: new Date(Date.now() - 1000 * 60 * 30)
-    },
-    {
-      id: '2',
-      content: "I'm looking for information on your latest product releases.",
-      sender: 'user',
-      timestamp: new Date(Date.now() - 1000 * 60 * 28)
-    },
-    {
-      id: '3',
-      content: "We recently launched our new AI-powered platform with advanced analytics capabilities. Would you like to know more about specific features?",
-      sender: 'bot',
-      timestamp: new Date(Date.now() - 1000 * 60 * 26)
-    },
-    {
-      id: '4',
-      content: "Yes, can you tell me about the pricing structure and integration options?",
-      sender: 'user',
-      timestamp: new Date(Date.now() - 1000 * 60 * 25)
-    },
-    {
-      id: '5',
-      content: "Our pricing starts at $29/month for the basic tier, with premium options at $79/month for enterprise features. We support integration with most CRM systems including Salesforce, HubSpot, and custom APIs through our developer SDK.",
-      sender: 'bot',
-      timestamp: new Date(Date.now() - 1000 * 60 * 23)
-    }
-  ]);
-  
+  // Initialize with empty messages array
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [socketConnected, setSocketConnected] = useState(false);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (userId) {
+      console.log("Initializing socket for user:", userId);
+      const socket = initializeSocket(userId);
+      
+      // Listen for connection status
+      const handleConnect = () => {
+        console.log("Socket connected successfully");
+        setSocketConnected(true);
+      };
+      
+      const handleDisconnect = () => {
+        console.log("Socket disconnected");
+        setSocketConnected(false);
+      };
+      
+      const handleConnectError = (error: any) => {
+        console.error("Socket connection error:", error);
+        setSocketConnected(false);
+      };
+      
+      socket.on('connect', handleConnect);
+      socket.on('disconnect', handleDisconnect);
+      socket.on('connect_error', handleConnectError);
+      
+      // If already connected, set connected state
+      if (socket.connected) {
+        setSocketConnected(true);
+      }
+      
+      return () => {
+        socket.off('connect', handleConnect);
+        socket.off('disconnect', handleDisconnect);
+        socket.off('connect_error', handleConnectError);
+      };
+    }
+  }, [userId]);
+
+  // Listen for new messages
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket || !mail || !userId) {
+      console.log("Socket, mail, or userId not available:", { 
+        socketAvailable: !!socket, 
+        mailAvailable: !!mail, 
+        userIdAvailable: !!userId 
+      });
+      return;
+    }
+    
+    console.log(`Setting up message listeners for conversation with ${mail.name} (${mail.id})`);
+    
+    // Handle incoming messages
+    const handleNewMessage = (message: any) => {
+      console.log("New message received:", message);
+      
+      // Only add if message is for this conversation
+      if (
+        (message.senderId === mail.id && message.receiverId === userId) ||
+        (message.senderId === userId && message.receiverId === mail.id)
+      ) {
+        console.log("Message belongs to current conversation");
+        
+        const newMessage: ChatMessage = {
+          id: message._id || Date.now().toString(), // Fallback ID if _id is missing
+          content: message.content,
+          sender: message.senderId === userId ? 'user' : 'bot',
+          timestamp: new Date(message.timestamp || Date.now())
+        };
+        
+        setMessages(prev => [...prev, newMessage]);
+        
+        // Mark message as read if we're the receiver
+        if (message.senderId === mail.id) {
+          console.log("Marking message as read");
+          socket.emit('mark_as_read', { messageIds: [message._id || newMessage.id] });
+        }
+      } else {
+        console.log("Message not for current conversation");
+      }
+    };
+    
+    // Confirmation of message sent
+    const handleMessageSent = (message: any) => {
+      console.log('Message sent successfully:', message);
+      
+      // Add message to the UI (in case it's not added by the new_message event)
+      const newMessage: ChatMessage = {
+        id: message._id || Date.now().toString(),
+        content: message.content,
+        sender: 'user',
+        timestamp: new Date(message.timestamp || Date.now())
+      };
+      
+      // Check if message is already in the list (avoid duplicates)
+      const messageExists = messages.some(m => 
+        m.content === newMessage.content && 
+        Math.abs(new Date(m.timestamp).getTime() - new Date(newMessage.timestamp).getTime()) < 5000
+      );
+      
+      if (!messageExists) {
+        console.log("Adding sent message to UI");
+        setMessages(prev => [...prev, newMessage]);
+      }
+    };
+    
+    // Handle errors
+    const handleError = (error: any) => {
+      console.error('Socket error:', error);
+    };
+    
+    // Test message event handler
+    const handleTestMessage = (data: any) => {
+      console.log('Test message received:', data);
+    };
+    
+    // Register event handlers
+    socket.on('new_message', handleNewMessage);
+    socket.on('message_sent', handleMessageSent);
+    socket.on('error', handleError);
+    socket.on('test_message', handleTestMessage);
+    
+    // Send a ping to the server to make sure the connection is working
+    socket.emit('ping', { userId });
+    
+    return () => {
+      console.log("Cleaning up message listeners");
+      socket.off('new_message', handleNewMessage);
+      socket.off('message_sent', handleMessageSent);
+      socket.off('error', handleError);
+      socket.off('test_message', handleTestMessage);
+    };
+  }, [mail?.id, userId, messages]);
+
+  // Reset messages when selected mail changes and fetch existing messages
+  useEffect(() => {
+    if (!mail?.id || !userId) {
+      setMessages([]);
+      setInputMessage('');
+      return;
+    }
+    
+    console.log(`Fetching message history for conversation with ${mail.name} (${mail.id})`);
+    
+    const fetchMessages = async () => {
+      try {
+        const response = await apiClient.get('/api/chat/messages', {
+          params: {
+            userId,
+            contactId: mail.id
+          }
+        });
+        
+        console.log("Messages fetched:", response.data.messages);
+        
+        // Transform messages to match our UI format
+        const chatMessages: ChatMessage[] = response.data.messages.map((msg: any) => ({
+          id: msg._id,
+          content: msg.content,
+          sender: msg.senderId === userId ? 'user' : 'bot',
+          timestamp: new Date(msg.timestamp)
+        }));
+        
+        setMessages(chatMessages);
+        
+        // Mark unread messages as read
+        const unreadMessageIds = response.data.messages
+          .filter((msg: any) => !msg.read && msg.senderId === mail.id)
+          .map((msg: any) => msg._id);
+        
+        if (unreadMessageIds.length > 0) {
+          console.log("Marking unread messages as read:", unreadMessageIds);
+          await apiClient.post('/api/chat/mark-read', { messageIds: unreadMessageIds });
+        }
+      } catch (error) {
+        console.error('Error fetching messages:', error);
+      }
+    };
+    
+    fetchMessages();
+  }, [mail?.id, userId]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !mail || !userId) return;
 
-    // Add user message
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content: inputMessage,
+    const socket = getSocket();
+    if (!socket) {
+      console.error('Socket not connected');
+      return;
+    }
+    
+    const messageContent = inputMessage.trim();
+    setInputMessage(''); // Clear input field immediately
+    
+    console.log(`Sending message to ${mail.name} (${mail.id}): ${messageContent}`);
+    
+    // Create a local message object for immediate display
+    const tempMessage: ChatMessage = {
+      id: `temp-${Date.now()}`,
+      content: messageContent,
       sender: 'user',
       timestamp: new Date()
     };
     
-    setMessages(prev => [...prev, userMessage]);
-    setInputMessage('');
+    // Add message to UI immediately
+    setMessages(prev => [...prev, tempMessage]);
     
-    // Simulate bot typing
-    setIsTyping(true);
-    
-    // Simulate bot response after delay
-    setTimeout(() => {
-      const botMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        content: "Thank you for your inquiry. I'm checking our database for the most up-to-date information. One moment please...",
-        sender: 'bot',
-        timestamp: new Date()
-      };
+    try {
+      // Send message through WebSocket
+      socket.emit('send_message', {
+        receiverId: mail.id,
+        content: messageContent
+      });
       
-      setMessages(prev => [...prev, botMessage]);
-      setIsTyping(false);
-    }, 2500);
+      // If socket isn't connected properly, fall back to API
+      if (!socketConnected) {
+        console.log("Socket not connected, using API fallback");
+        try {
+          const response = await apiClient.post('/api/chat/send-message', {
+            senderId: userId,
+            receiverId: mail.id,
+            content: messageContent
+          });
+          console.log("Message sent via API:", response.data);
+        } catch (apiError) {
+          console.error("API fallback failed:", apiError);
+        }
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
   };
 
   return (
     <div className="flex h-full flex-col max-h-screen overflow-hidden">
+      {/* Header with connection status */}
       <div className="flex items-center p-3 border-b">
         {mail ? (
           <div className="flex items-start gap-4 text-sm">
@@ -129,7 +312,11 @@ export function MailDisplay({ mail }: MailDisplayProps) {
             </Avatar>
             <div className="grid gap-1">
               <div className="font-semibold">{mail.name}</div>
-              <div className="line-clamp-1 text-xs">{mail.id}</div>
+              <div className="line-clamp-1 text-xs flex items-center">
+                <span>{mail.id}</span>
+                <span className={`ml-2 h-2 w-2 rounded-full ${socketConnected ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                <span className="text-xs ml-1">{socketConnected ? 'Connected' : 'Offline'}</span>
+              </div>
             </div>
           </div>
         ) : (
@@ -249,7 +436,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
                   type="submit"
                   size="sm"
                   className="ml-auto"
-                  disabled={!inputMessage.trim()}
+                  disabled={!inputMessage.trim() || !socketConnected}
                 >
                   <Send className="h-4 w-4 mr-2" />
                   Send
