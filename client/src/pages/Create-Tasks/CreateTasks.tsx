@@ -28,9 +28,8 @@ import { toast } from "sonner"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Calendar as CalendarComponent } from "@/components/ui/calendar"
 import { cn } from "@/lib/utils"
-import { apiClient } from "@/lib/api-client"
+import { apiClient, pyApiClient } from "@/lib/api-client"
 import { CREATE_TASKS } from "@/utils/constants"
-
 // Add this constant to your project's constants file and import it properly
 
 export default function CreateTasks() {
@@ -45,7 +44,8 @@ export default function CreateTasks() {
   const [assignedYear, setAssignedYear] = useState("None")
   const [assignedDivision, setAssignedDivision] = useState("None")
   const [isSubmitting, setIsSubmitting] = useState(false)
-
+  // Add near your other state declarations
+  const [isImprovingWithAI, setIsImprovingWithAI] = useState(false)
   // Calculate assignedTo value for display
   const assignedTo = () => {
     if (assignedYear === "None" && assignedDivision === "None") return "None";
@@ -57,6 +57,57 @@ export default function CreateTasks() {
   // Current date formatted for display
   const currentDate = format(new Date(), "MMMM d, yyyy")
   const formattedDueDate = dueDate ? format(dueDate, "MMMM d, yyyy") : "No deadline set"
+
+  const handleImproveWithAI = async () => {
+    console.log("Improving with AI...")
+    if (!description.trim()) {
+      toast.error("Please enter a description to improve")
+      return
+    }
+
+    try {
+      setIsImprovingWithAI(true)
+
+      // Format due date if available
+      const dueDateFormatted = dueDate ? format(dueDate, "MMMM d, yyyy") : "no specific deadline";
+
+      // Create audience string
+      const audience = assignedYear !== "None" && assignedDivision !== "None"
+        ? `${assignedYear} students in ${assignedDivision}`
+        : assignedYear !== "None"
+          ? assignedYear + " students"
+          : assignedDivision !== "None"
+            ? assignedDivision + " students"
+            : "students";
+
+      // Send comprehensive context to the AI
+      const response = await pyApiClient.post("/generate-content", {
+        prompt: `Improve this task description: "${description}"`,
+        type: "task",
+        subject: subject,
+        context: {
+          title: title || "Untitled Task",
+          audience: audience,
+          dueDate: dueDateFormatted,
+          points: points,
+          priority: priority,
+          isAssessment: true
+        }
+      })
+
+      if (response.data && response.data.content) {
+        setDescription(response.data.content.trim())
+        toast.success("Description improved with AI")
+      } else {
+        toast.error("Failed to generate improved description")
+      }
+    } catch (error) {
+      console.error("Error improving with AI:", error)
+      toast.error("Failed to connect to AI service. Please try again.")
+    } finally {
+      setIsImprovingWithAI(false)
+    }
+  }
 
   const handleFileUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -120,13 +171,13 @@ export default function CreateTasks() {
           "Content-Type": "multipart/form-data"
         }
       });
-      
+
       console.log("Task created:", response.data);
       toast.success("Task created successfully!");
-      
+
       // Reset form after successful submission
       resetForm();
-      
+
     } catch (error: any) {
       console.error("Error creating task:", error);
       toast.error(error.response?.data?.message || "Failed to create task. Please try again.");
@@ -328,13 +379,35 @@ export default function CreateTasks() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Task Description</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description" className="items-center justify-center">Task Description</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="shrink-0 h-10"
+                        onClick={handleImproveWithAI}
+                        disabled={!description || isImprovingWithAI}
+                      >
+                        {isImprovingWithAI ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Improving...
+                          </>
+                        ) : (
+                          <>
+                            <span className="hidden md:inline">Improve with AI</span>
+                            <span className="md:hidden">AI</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    {/* Remove the unnecessary flex container and make textarea take full width */}
                     <Textarea
                       id="description"
                       placeholder="Enter detailed task description and instructions"
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      className="min-h-[200px]"
+                      className="w-full min-h-[200px]"
                       required
                     />
                   </div>
