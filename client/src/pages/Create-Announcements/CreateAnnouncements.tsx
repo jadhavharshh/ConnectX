@@ -1,12 +1,12 @@
 import React, { useState, ChangeEvent } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
-import { 
-  Breadcrumb, 
-  BreadcrumbItem, 
-  BreadcrumbLink, 
-  BreadcrumbList, 
-  BreadcrumbPage, 
-  BreadcrumbSeparator 
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -25,8 +25,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Users, Upload, Loader2 } from "lucide-react"
 import { format } from "date-fns"
 import { toast } from "sonner"
-import { apiClient } from "@/lib/api-client"
-import { CREATE_ANNOUCEMENT } from "@/utils/constants" 
+import { apiClient, pyApiClient } from "@/lib/api-client"
+import { CREATE_ANNOUCEMENT } from "@/utils/constants"
 
 export default function CreateAnnouncements() {
   const [title, setTitle] = useState("")
@@ -37,9 +37,12 @@ export default function CreateAnnouncements() {
   const [priority, setPriority] = useState("normal")
   const [author, setAuthor] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  
+  const [isImprovingWithAI, setIsImprovingWithAI] = useState(false)
+
+
   // Current date formatted for display
   const currentDate = format(new Date(), "MMMM d, yyyy")
+
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -51,69 +54,109 @@ export default function CreateAnnouncements() {
     }
   }
 
+  const handleImproveWithAI = async () => {
+    console.log("Improving announcement with AI...")
+    if (!content.trim()) {
+      toast.error("Please enter content to improve")
+      return
+    }
+    try {
+      setIsImprovingWithAI(true)
+
+      // Send comprehensive context to the AI
+      const response = await pyApiClient.post("/generate-content", {
+        prompt: `Improve this announcement content: "${content}"`,
+        type: "announcement",
+        subject: category,
+        context: {
+          title: title || "Untitled Announcement",
+          category: category,
+          priority: priority,
+          author: author,
+          isImportant: priority === "important"
+        }
+      })
+
+      if (response.data && response.data.content) {
+        // Remove any potential "Here is..." prefixes
+        let improvedText = response.data.content.trim()
+        improvedText = improvedText.replace(/^(here is|here's).*?:/i, '').trim()
+
+        setContent(improvedText)
+        toast.success("Content improved with AI")
+      } else {
+        toast.error("Failed to generate improved content")
+      }
+    } catch (error) {
+      console.error("Error improving with AI:", error)
+      toast.error("Failed to connect to AI service. Please try again.")
+    } finally {
+      setIsImprovingWithAI(false)
+    }
+  }
   // Update the handleSubmit function only:
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  
-  if (!title || !content || !author) {
-    toast.error("Please fill in all required fields")
-    return
-  }
-  
-  try {
-    setIsSubmitting(true)
-    
-    // Create FormData for file upload
-    const formData = new FormData()
-    formData.append("title", title)
-    formData.append("content", content)
-    formData.append("category", category)
-    formData.append("priority", priority)
-    formData.append("author", author)
-    formData.append("date", currentDate)
-    
-    // Append image file if available
-    if (imageFile) {
-      // Add file size validation
-      if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error("Image size exceeds 5MB limit")
-        setIsSubmitting(false)
-        return
-      }
-      formData.append("image", imageFile)
-    } else if (imagePreviewUrl) {
-      // If using default image URL or external URL, send the URL
-      formData.append("imageUrl", imagePreviewUrl)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!title || !content || !author) {
+      toast.error("Please fill in all required fields")
+      return
     }
-    
-    // Make API call with proper content type for multipart data
-    const response = await apiClient.post(CREATE_ANNOUCEMENT, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
+
+    try {
+      setIsSubmitting(true)
+
+      // Create FormData for file upload
+      const formData = new FormData()
+      formData.append("title", title)
+      formData.append("content", content)
+      formData.append("category", category)
+      formData.append("priority", priority)
+      formData.append("author", author)
+      formData.append("date", currentDate)
+
+      // Append image file if available
+      if (imageFile) {
+        // Add file size validation
+        if (imageFile.size > 5 * 1024 * 1024) { // 5MB limit
+          toast.error("Image size exceeds 5MB limit")
+          setIsSubmitting(false)
+          return
+        }
+        formData.append("image", imageFile)
+      } else if (imagePreviewUrl) {
+        // If using default image URL or external URL, send the URL
+        formData.append("imageUrl", imagePreviewUrl)
       }
-    })
-    
-    console.log("Announcement created:", response.data)
-    
-    toast.success("Announcement published successfully!")
-    
-    // Reset form fields
-    setTitle("")
-    setContent("")
-    setImageFile(null)
-    setImagePreviewUrl("")
-    setCategory("Maintenance")
-    setPriority("normal")
-    setAuthor("")
-    
-  } catch (error: any) {
-    console.error("Error creating announcement:", error)
-    toast.error(error.response?.data?.message || "Error publishing announcement. Please try again.")
-  } finally {
-    setIsSubmitting(false)
+
+      // Make API call with proper content type for multipart data
+      const response = await apiClient.post(CREATE_ANNOUCEMENT, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      })
+
+      console.log("Announcement created:", response.data)
+
+      toast.success("Announcement published successfully!")
+
+      // Reset form fields
+      setTitle("")
+      setContent("")
+      setImageFile(null)
+      setImagePreviewUrl("")
+      setCategory("Maintenance")
+      setPriority("normal")
+      setAuthor("")
+
+    } catch (error: any) {
+      console.error("Error creating announcement:", error)
+      toast.error(error.response?.data?.message || "Error publishing announcement. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
 
 
   return (
@@ -153,7 +196,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <TabsTrigger value="edit">Edit</TabsTrigger>
               <TabsTrigger value="preview">Preview</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="edit">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4">
@@ -167,7 +210,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="author">Author</Label>
                     <Input
@@ -230,8 +273,28 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="content">Content</Label>
-                    <Textarea
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="content">Content</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="shrink-0 h-10"
+                        onClick={handleImproveWithAI}
+                        disabled={!content || isImprovingWithAI}
+                      >
+                        {isImprovingWithAI ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Improving...
+                          </>
+                        ) : (
+                          <>
+                            <span className="hidden md:inline">Improve with AI</span>
+                            <span className="md:hidden">AI</span>
+                          </>
+                        )}
+                      </Button>
+                    </div>                    <Textarea
                       id="content"
                       placeholder="Enter announcement content"
                       value={content}
@@ -241,7 +304,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex justify-end">
                   <Button type="submit" disabled={isSubmitting}>
                     {isSubmitting ? (
@@ -260,11 +323,11 @@ const handleSubmit = async (e: React.FormEvent) => {
             <TabsContent value="preview">
               <div className="border rounded-lg p-4">
                 <h2 className="text-lg font-semibold mb-4">Preview</h2>
-                
+
                 <Card className="overflow-hidden">
                   <div className="relative h-64 w-full">
-                    <img 
-                      src={imagePreviewUrl || "https://placehold.co/800x400?text=No+Image+Selected"} 
+                    <img
+                      src={imagePreviewUrl || "https://placehold.co/800x400?text=No+Image+Selected"}
                       alt={title || "Announcement Preview"}
                       className="absolute inset-0 h-full w-full object-cover"
                       onError={(e) => {
