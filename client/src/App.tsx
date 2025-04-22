@@ -19,6 +19,8 @@ import CreateTasks from './pages/Create-Tasks/CreateTasks'
 import CreateAnnouncements from './pages/Create-Announcements/CreateAnnouncements'
 import Tasks from './pages/Tasks/Tasks'
 import AiChat from './pages/AIChat/AiChat'
+import MenteePage from './pages/MenteePage/MenteePage'
+import MentorPage from './pages/MentorPage/MentorPage'
 
 // Ensure to replace or import your apiClient and FETCH_USER_INFO endpoint.
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -100,6 +102,9 @@ function App() {
         <Route path="/create-announcement" element={<PrivateRoute><TeacherRoute><CreateAnnouncements /></TeacherRoute></PrivateRoute>}/>
         <Route path="/create-tasks" element={<PrivateRoute><TeacherRoute><CreateTasks /></TeacherRoute></PrivateRoute>}/>
         <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>}/>
+        <Route path="/mentor-section" element={<PrivateRoute><MentorPage /></PrivateRoute>}/>
+        <Route path="/mentee-section" element={<PrivateRoute><MenteePage /></PrivateRoute>}/>
+
         <Route path="/aichat" element={<PrivateRoute><AiChat /></PrivateRoute>}/>
 
         {/* 404 Error Page */}
