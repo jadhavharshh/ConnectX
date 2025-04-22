@@ -8,6 +8,7 @@ import {
   MessageSquare,
   Edit3,
   CheckSquare,
+  BotIcon,
 } from "lucide-react"
 
 import { useUser } from "@clerk/clerk-react"
@@ -61,6 +62,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       title: "Settings",
       url: "/settings",
       icon: Settings2,
+    },
+    {
+      title: "Ai Chat",
+      url: "/aichat",
+      icon: BotIcon,
     },
   ]
 
