@@ -1,0 +1,12 @@
+# Core dependencies
+flask
+flask-cors
+python-dotenv
+
+# LangChain dependencies
+langchain
+langchain-core
+langchain-groq
+
+# Additional dependencies
+requests
