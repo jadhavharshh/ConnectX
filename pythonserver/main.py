@@ -11,6 +11,15 @@ from langchain_core.prompts import (
 from langchain_core.messages import SystemMessage
 from langchain.chains.conversation.memory import ConversationBufferWindowMemory
 from langchain_groq import ChatGroq
+from pymongo import MongoClient
+import re
+from datetime import datetime
+
+# Add this at the top with other imports
+# MongoDB connection - initialize once at startup
+mongo_uri = "mongodb+srv://harshjadhavcodes:Q3b11kzsGPMvfihJ@connectx.awqtw.mongodb.net/"
+mongo_client = MongoClient(mongo_uri)
+db = mongo_client["test"]  # Use the database name from your config
 
 # Load environment variables
 load_dotenv()
@@ -106,6 +115,136 @@ Your response should ONLY include the improved description text with no addition
     except Exception as e:
         print(f"Error generating content: {str(e)}")
         return jsonify({"error": str(e)}), 500
+
+
+
+@app.route("/pyapi/get-ai-response", methods=["POST"])
+def get_ai_response():
+    """
+    Handle AI chat queries with enhanced context awareness of the ConnectX platform data.
+    """
+    try:
+        print("In the get-ai-response endpoint")
+        data = request.get_json()
+        query = data.get('query', '')
+        user_id = data.get('userId', 'default_user')
+
+        if not query:
+            return jsonify({'error': 'Query is required'}), 400
+
+        # Retrieve or create user's conversation memory
+        memory = get_user_memory(user_id)
+        
+        # Extract relevant data from MongoDB based on query content
+        context_data = {}
+        
+        # Check query for different types of information requests
+        query_lower = query.lower()
+        
+        # Fetch announcements if mentioned in query
+        if any(word in query_lower for word in ['announcement', 'news', 'updates']):
+            announcements = list(db.announcements.find({}, {
+                'title': 1, 'content': 1, 'category': 1, 
+                'priority': 1, 'date': 1, 'author': 1
+            }).sort('createdAt', -1).limit(5))
+            
+            if announcements:
+                context_data['announcements'] = [
+                    {k: v for k, v in ann.items() if k != '_id'} 
+                    for ann in announcements
+                ]
+        
+        # Fetch tasks/assignments if mentioned
+        if any(word in query_lower for word in ['task', 'assignment', 'homework', 'deadline']):
+            tasks = list(db.tasks.find({}, {
+                'title': 1, 'description': 1, 'subject': 1,
+                'dueDate': 1, 'points': 1, 'priority': 1
+            }).sort('createdAt', -1).limit(5))
+            
+            if tasks:
+                context_data['tasks'] = [
+                    {k: v for k, v in task.items() if k != '_id'} 
+                    for task in tasks
+                ]
+        
+        # If the user is asking about their profile
+        if any(word in query_lower for word in ['profile', 'my info', 'my account']):
+            # Try both student and teacher collections
+            student = db.students.find_one({'clerkUserId': user_id})
+            if student:
+                context_data['profile'] = {
+                    'type': 'student',
+                    'name': student.get('name'),
+                    'email': student.get('email'),
+                    'year': student.get('year'),
+                    'division': student.get('division')
+                }
+            else:
+                teacher = db.teachers.find_one({'clerkUserId': user_id})
+                if teacher:
+                    context_data['profile'] = {
+                        'type': 'teacher',
+                        'name': teacher.get('name'),
+                        'department': teacher.get('department'),
+                        'email': teacher.get('teacherId')
+                    }
+        
+        # If asking about schedule or classes
+        if any(word in query_lower for word in ['schedule', 'class', 'timetable']):
+            # This would require a schedule collection - for now we'll return a placeholder
+            context_data['schedule'] = "Schedule information would be retrieved here if available"
+        
+        # Enhanced system message with educational context
+        system_message = f"""You are ConnectX AI Assistant, a helpful educational AI for a college platform.
+
+CAPABILITIES:
+- Provide information about courses, assignments, and campus events
+- Answer academic questions and explain concepts
+- Help with scheduling and organization
+- Offer study tips and learning strategies
+
+AVAILABLE DATA TYPES:
+- Student profiles (name, ID, email, year, division)
+- Teacher profiles (name, department, ID)
+- Tasks/Assignments (title, description, subject, due date, points)
+- Announcements (title, content, category, priority, date)
+- Chat messages between users
+
+CURRENT DATA CONTEXT:
+{context_data}
+
+When answering:
+1. Use the actual data provided in CURRENT DATA CONTEXT if relevant to the question
+2. Format your response in a clear, organized way
+3. Keep responses concise, helpful, and student-focused
+4. If no specific data is provided, give a general helpful response
+
+Remember to maintain a professional, supportive tone appropriate for an educational platform.
+"""
+
+        # Define the chat prompt template with history
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessage(content=system_message),
+            MessagesPlaceholder(variable_name="chat_history"),
+            HumanMessagePromptTemplate.from_template("{human_input}")
+        ])
+
+        # Create a conversation chain using LangChain
+        conversation = LLMChain(
+            llm=groq_chat,
+            prompt=prompt,
+            verbose=False,
+            memory=memory
+        )
+
+        # Generate AI response
+        response = conversation.predict(human_input=query)
+        
+        return jsonify({'response': response}), 200
+
+    except Exception as e:
+        print(f"Error in get-ai-response: {str(e)}")
+        return jsonify({'error': 'An error occurred while processing your request.'}), 500
 
 @app.route("/analyze-performance", methods=["POST"])
 def analyze_performance():
