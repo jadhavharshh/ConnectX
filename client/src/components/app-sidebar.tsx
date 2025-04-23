@@ -9,6 +9,8 @@ import {
   Edit3,
   CheckSquare,
   BotIcon,
+  GraduationCap,
+  UserRoundCog,
 } from "lucide-react"
 
 import { useUser } from "@clerk/clerk-react"
@@ -30,6 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const email = user?.primaryEmailAddress?.emailAddress ?? ""
   const userData = useStore((state) => state.userData)
   const isTeacher = userData?.role === "teacher"
+  const isStudent = userData?.role === "student"
 
   // Define the initial nav items
   const baseNavMain = [
@@ -83,6 +86,22 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           url: "/create-tasks",
           icon: CheckSquare,
         },
+        {
+          title: "Mentor Section",
+          url: "/mentor-section",
+          icon: UserRoundCog,
+        }
+      ]
+    : []
+    
+  // If the user is a student, add student-only options
+  const studentNav = isStudent
+    ? [
+        {
+          title: "Mentee Section",
+          url: "/mentee-section",
+          icon: GraduationCap,
+        }
       ]
     : []
 
@@ -98,7 +117,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         plan: "Made by TOPGs",
       },
     ],
-    navMain: [...baseNavMain, ...teacherNav],
+    navMain: [...baseNavMain, ...teacherNav, ...studentNav],
   }
 
   return (

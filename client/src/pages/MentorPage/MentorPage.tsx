@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FETCH_CHAT } from "@/utils/constants";
+import { ADD_MENTEES, FETCH_CHAT, FETCH_MENTEES } from "@/utils/constants";
 
 // Define interfaces for our data structures
 interface Mentee {
@@ -84,9 +84,18 @@ interface Student {
     division: string;
 }
 
+interface Document {
+    id: string;
+    name: string;
+    type: string;
+    size: number;
+    uploadDate: string;
+    url: string;
+}
+
 export default function MentorPage() {
     const userData = useStore((state) => state.userData);
-
+    const { user } = useUser();
     const [mentees, setMentees] = useState<Mentee[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [filteredStudents, setFilteredStudents] = useState<Student[]>([]);
@@ -101,11 +110,10 @@ export default function MentorPage() {
         fetchData();
     }, []);
 
+    // Replace the fetchData function with this implementation
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // In a real implementation, these would be separate API calls
-
             // 1. Fetch students who are not yet your mentees
             const studentsResponse = await apiClient.get(FETCH_CHAT);
 
@@ -113,7 +121,7 @@ export default function MentorPage() {
             const allStudents = studentsResponse.data.contacts
                 .filter((contact: any) => contact.role === "student")
                 .map((student: any) => ({
-                    id: student.id || student._id,
+                    id: student._id || student.id,
                     name: student.name,
                     email: student.email || "",
                     studentId: student.studentId || "",
@@ -124,62 +132,67 @@ export default function MentorPage() {
             setStudents(allStudents);
             setFilteredStudents(allStudents);
 
-            // 2. Fetch current mentees
-            // This would normally be a separate API call to get mentees
-            // For now, we'll use mock data
-            const mockMentees: Mentee[] = [
-                {
-                    id: "student1",
-                    name: "Alex Johnson",
-                    email: "alex@example.com",
-                    studentId: "ST2023001",
-                    year: "second",
-                    division: "A",
-                    documents: [
-                        {
-                            id: "doc1",
-                            name: "First Semester Marksheet",
-                            type: "PDF",
-                            size: 2500000,
-                            uploadDate: "2023-10-15T14:30:00",
-                            url: "/documents/marksheet.pdf"
-                        },
-                        {
-                            id: "doc2",
-                            name: "Internship Certificate",
-                            type: "PDF",
-                            size: 1200000,
-                            uploadDate: "2023-11-05T09:15:00",
-                            url: "/documents/certificate.pdf"
-                        }
-                    ]
-                },
-                {
-                    id: "student2",
-                    name: "Maya Patel",
-                    email: "maya@example.com",
-                    studentId: "ST2023042",
-                    year: "first",
-                    division: "B",
-                    documents: [
-                        {
-                            id: "doc3",
-                            name: "School Leaving Certificate",
-                            type: "PDF",
-                            size: 3100000,
-                            uploadDate: "2023-09-20T11:45:00",
-                            url: "/documents/certificate.pdf"
-                        }
-                    ]
-                }
-            ];
+            // 2. Fetch current mentees using the dedicated endpoint
+            try {
+                const menteesResponse = await apiClient.get(FETCH_MENTEES, {
+                    params: { mentorId: userData?.data?.id || user?.id }
+                });
+                
+                // And in handleAddMentees function
+                const response = await apiClient.post(ADD_MENTEES, {
+                    mentorId: userData?.data?.id || user?.id,
+                    studentIds: selectedStudents
+                });
 
-            setMentees(mockMentees);
+                // Assuming the backend returns mentees with their documents
+                if (menteesResponse.data.mentees && menteesResponse.data.mentees.length > 0) {
+                    setMentees(menteesResponse.data.mentees);
+                } else {
+                    // If no mentees found, set empty array
+                    setMentees([]);
+                }
+            } catch (menteeError) {
+                console.error("Error fetching mentees:", menteeError);
+                toast.error("Failed to fetch mentees");
+                setMentees([]);
+            }
         } catch (error) {
             console.error("Error fetching data:", error);
             toast.error("Failed to fetch data");
+            setStudents([]);
+            setFilteredStudents([]);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Replace the handleAddMentees function with this implementation
+    const handleAddMentees = async () => {
+        if (selectedStudents.length === 0) {
+            toast.error("No students selected");
+            return;
+        }
+
+        try {
+            // Make API call to add mentees
+            const response = await apiClient.post(ADD_MENTEES, {
+                mentorId: userData?.data?.id || user?.id,
+                studentIds: selectedStudents
+            });
+
+            if (response.data.success) {
+                // Refresh the mentees list
+                fetchData();
+                setSelectedStudents([]);
+                setIsAddingMentees(false);
+
+                toast.success(`Successfully added ${selectedStudents.length} new mentees`);
+            } else {
+                throw new Error(response.data.message || "Failed to add mentees");
+            }
+        } catch (error) {
+            console.error("Error adding mentees:", error);
+            toast.error("Failed to add mentees");
         }
     };
 
@@ -199,43 +212,6 @@ export default function MentorPage() {
 
         setFilteredStudents(filtered);
     }, [searchQuery, students]);
-
-    // Handle adding selected students as mentees
-    const handleAddMentees = async () => {
-        if (selectedStudents.length === 0) {
-            toast.error("No students selected");
-            return;
-        }
-
-        try {
-            // In a real implementation, this would make an API call to update mentees
-            // For demo purposes, we'll just update the local state
-
-            const newMentees = selectedStudents.map(id => {
-                const student = students.find(s => s.id === id);
-                if (!student) return null;
-
-                return {
-                    id: student.id,
-                    name: student.name,
-                    email: student.email,
-                    studentId: student.studentId,
-                    year: student.year,
-                    division: student.division,
-                    documents: [] // New mentees start with no documents
-                };
-            }).filter(Boolean) as Mentee[];
-
-            setMentees(prev => [...prev, ...newMentees]);
-            setSelectedStudents([]);
-            setIsAddingMentees(false);
-
-            toast.success("Mentees added successfully");
-        } catch (error) {
-            console.error("Error adding mentees:", error);
-            toast.error("Failed to add mentees");
-        }
-    };
 
     // Handle selecting/deselecting a student
     const toggleStudentSelection = (id: string) => {

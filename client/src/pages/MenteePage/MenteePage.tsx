@@ -75,6 +75,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
+import { DELETE_DOCUMENT, FETCH_DOCUMENT_CATEGORIES, FETCH_DOCUMENTS, FETCH_MENTOR, UPLOAD_DOCUMENT } from "@/utils/constants";
 
 // Define interfaces for our data structures
 interface Mentor {
@@ -121,80 +122,6 @@ export default function MenteePage() {
     useEffect(() => {
         fetchData();
     }, []);
-
-    const fetchData = async () => {
-        try {
-            // In a real implementation, these would be API calls
-
-            // 1. Mock mentor data
-            const mockMentor: Mentor = {
-                id: "mentor1",
-                name: "Dr. Sarah Wilson",
-                email: "sarah.wilson@example.com",
-                department: "Computer Science",
-            };
-
-            setMentor(mockMentor);
-
-            // 2. Mock document categories
-            const mockDocumentCategories: DocumentCategory[] = [
-                {
-                    id: "category1",
-                    name: "Academic Marksheets",
-                    required: true,
-                    description: "Semester-wise marksheets and grade reports"
-                },
-                {
-                    id: "category2",
-                    name: "Certificates",
-                    required: false,
-                    description: "Course completion, internship, and other certificates"
-                },
-                {
-                    id: "category3",
-                    name: "ID Proofs",
-                    required: true,
-                    description: "College ID card and other identity proofs"
-                },
-                {
-                    id: "category4",
-                    name: "Projects",
-                    required: false,
-                    description: "Project reports and documentation"
-                },
-            ];
-
-            setDocumentCategories(mockDocumentCategories);
-
-            // 3. Mock documents
-            const mockDocuments: Document[] = [
-                {
-                    id: "doc1",
-                    name: "First Semester Marksheet",
-                    type: "PDF",
-                    size: 2500000,
-                    uploadDate: "2023-10-15T14:30:00",
-                    url: "/documents/marksheet.pdf",
-                    status: "approved"
-                },
-                {
-                    id: "doc2",
-                    name: "Internship Certificate",
-                    type: "PDF",
-                    size: 1200000,
-                    uploadDate: "2023-11-05T09:15:00",
-                    url: "/documents/certificate.pdf",
-                    status: "pending"
-                }
-            ];
-
-            setDocuments(mockDocuments);
-        } catch (error) {
-            console.error("Error fetching data:", error);
-            toast.error("Failed to fetch data");
-        }
-    };
-
     // Handle file selection
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -209,7 +136,46 @@ export default function MenteePage() {
         }
     };
 
-    // Handle document upload
+    // Replace the fetchData function with this implementation
+    const fetchData = async () => {
+        try {
+            // Update these lines in the fetchData function
+            const mentorResponse = await apiClient.get(FETCH_MENTOR, {
+                params: { studentId: userData?.data?.id || user?.id }
+            });
+
+            if (mentorResponse.data.mentor) {
+                setMentor(mentorResponse.data.mentor);
+            } else {
+                setMentor(null);
+            }
+
+            // 2. Fetch document categories
+            const categoriesResponse = await apiClient.get(FETCH_DOCUMENT_CATEGORIES);
+
+            if (categoriesResponse.data.categories) {
+                setDocumentCategories(categoriesResponse.data.categories);
+            } else {
+                setDocumentCategories([]);
+            }
+
+            // 3. Fetch student's documents
+            const documentsResponse = await apiClient.get(FETCH_DOCUMENTS, {
+                params: { studentId: userData?.data?.id || user?.id }
+            });
+
+            if (documentsResponse.data.documents) {
+                setDocuments(documentsResponse.data.documents);
+            } else {
+                setDocuments([]);
+            }
+        } catch (error) {
+            console.error("Error fetching data:", error);
+            toast.error("Failed to load mentee data");
+        }
+    };
+
+    // Replace the handleUploadDocument function with this implementation
     const handleUploadDocument = async () => {
         if (!selectedCategory || !documentName || !file) {
             toast.error("Missing Information");
@@ -220,43 +186,42 @@ export default function MenteePage() {
         setUploadProgress(0);
 
         try {
-            // Simulate upload progress
-            const intervalId = setInterval(() => {
-                setUploadProgress(prev => {
-                    const newProgress = prev + Math.random() * 20;
-                    return newProgress >= 100 ? 100 : newProgress;
-                });
-            }, 500);
+            // Create form data for file upload
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('documentName', documentName);
+            formData.append('categoryId', selectedCategory);
+            formData.append('studentId', userData?.data?.id || user?.id || '');
 
-            // Simulate API call with a delay
-            await new Promise(resolve => setTimeout(resolve, 2500));
-
-            clearInterval(intervalId);
-            setUploadProgress(100);
-
-            // In a real implementation, this would be an API call to upload the document
-            const newDocument: Document = {
-                id: `doc-${Date.now()}`,
-                name: documentName,
-                type: file.type.split('/')[1].toUpperCase(),
-                size: file.size,
-                uploadDate: new Date().toISOString(),
-                url: URL.createObjectURL(file), // In a real app, this would be a server URL
-                status: "pending",
+            // Setup progress tracking
+            const config = {
+                onUploadProgress: (progressEvent: any) => {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    setUploadProgress(percentCompleted);
+                }
             };
 
-            setDocuments(prev => [newDocument, ...prev]);
+            // Make API call to upload document
+            const response = await apiClient.post(UPLOAD_DOCUMENT, formData, config);
 
-            // Reset form
-            setDocumentName("");
-            setSelectedCategory("");
-            setFile(null);
-            setIsAddingDocument(false);
+            if (response.data.success) {
+                // Add the new document to the list
+                const newDocument = response.data.document;
+                setDocuments(prev => [newDocument, ...prev]);
 
-            toast.success("Document uploaded successfully");
+                // Reset form
+                setDocumentName("");
+                setSelectedCategory("");
+                setFile(null);
+                setIsAddingDocument(false);
+
+                toast.success("Document uploaded successfully");
+            } else {
+                throw new Error(response.data.message || "Upload failed");
+            }
         } catch (error) {
             console.error("Error uploading document:", error);
-            toast.error("File upload Failed")
+            toast.error("File upload failed");
         } finally {
             setIsUploading(false);
             setUploadProgress(0);
@@ -268,16 +233,24 @@ export default function MenteePage() {
         }
     };
 
-    // Handle document deletion
+    // Replace the handleDeleteDocument function with this implementation
     const handleDeleteDocument = async (documentId: string) => {
         try {
-            // In a real implementation, this would be an API call to delete the document
-            setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+            // Make API call to delete document
+            const response = await apiClient.delete(DELETE_DOCUMENT, {
+                data: { documentId }
+            });
 
-            toast.success("Document deleted successfully");
+            if (response.data.success) {
+                // Remove the document from the list
+                setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+                toast.success("Document deleted successfully");
+            } else {
+                throw new Error(response.data.message || "Deletion failed");
+            }
         } catch (error) {
             console.error("Error deleting document:", error);
-            toast.error("Deletion Failed");
+            toast.error("Deletion failed");
         }
     };
 
