@@ -180,9 +180,10 @@ export default function MenteePage() {
     };
 
     // Replace the handleUploadDocument function with this implementation
+    // Replace the handleUploadDocument function with this implementation
     const handleUploadDocument = async () => {
         if (!selectedCategory || !documentName || !file) {
-            toast.error("Missing Information");
+            toast.error("Missing information");
             return;
         }
 
@@ -197,8 +198,18 @@ export default function MenteePage() {
             formData.append('categoryId', selectedCategory);
             formData.append('studentId', userData?.data?.id || user?.id || '');
 
+            console.log("Uploading document:", {
+                name: documentName,
+                category: selectedCategory,
+                fileSize: file.size,
+                fileType: file.type
+            });
+
             // Setup progress tracking
             const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
                 onUploadProgress: (progressEvent: any) => {
                     const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
                     setUploadProgress(percentCompleted);
@@ -207,6 +218,8 @@ export default function MenteePage() {
 
             // Make API call to upload document
             const response = await apiClient.post(UPLOAD_DOCUMENT, formData, config);
+
+            console.log("Upload response:", response.data);
 
             if (response.data.success) {
                 // Add the new document to the list

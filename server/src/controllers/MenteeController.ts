@@ -21,10 +21,10 @@ const DocumentSchema = new mongoose.Schema({
   uploadDate: { type: Date, default: Date.now },
   url: { type: String, required: true },
   categoryId: { type: String, required: true },
-  status: { 
-    type: String, 
-    enum: ["pending", "approved", "rejected"], 
-    default: "pending" 
+  status: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: "pending"
   }
 });
 
@@ -43,12 +43,12 @@ const DocumentCategory = mongoose.models.DocumentCategory || mongoose.model("Doc
 const documentStorage = multer.diskStorage({
   destination: (req, file, cb) => {
     const uploadDir = path.join(__dirname, '../../public/uploads/documents');
-    
+
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
-    
+
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
@@ -59,7 +59,7 @@ const documentStorage = multer.diskStorage({
 });
 
 // Define the multer middleware for document uploads
-const uploadDocument = multer({ storage: documentStorage }).single('document');
+const uploadDocument = multer({ storage: documentStorage }).single('file');
 
 /**
  * Fetch mentor assigned to a specific student
@@ -72,7 +72,7 @@ export const FETCH_MENTOR = async (
   try {
     console.log("In the FETCH_MENTOR function");
     const { studentId } = request.query;
-    
+
     if (!studentId) {
       response.status(400).json({ error: "Student ID is required" });
       return;
@@ -80,7 +80,7 @@ export const FETCH_MENTOR = async (
 
     // Find the mentor-mentee relationship for this student
     const mentorship = await MentorMentee.findOne({ studentId });
-    
+
     if (!mentorship) {
       response.status(200).json({ mentor: null });
       return;
@@ -88,13 +88,13 @@ export const FETCH_MENTOR = async (
 
     // Find the mentor
     const mentor = await TeacherSchema.findOne({ clerkUserId: mentorship.mentorId });
-    
+
     if (!mentor) {
       response.status(200).json({ mentor: null });
       return;
     }
 
-    response.status(200).json({ 
+    response.status(200).json({
       mentor: {
         id: mentor.clerkUserId,
         name: mentor.name,
@@ -122,7 +122,7 @@ export const FETCH_DOCUMENT_CATEGORIES = async (
   try {
     // If no categories exist yet, create some default ones
     const categoryCount = await DocumentCategory.countDocuments();
-    
+
     if (categoryCount === 0) {
       // Create default categories
       await DocumentCategory.insertMany([
@@ -150,8 +150,8 @@ export const FETCH_DOCUMENT_CATEGORIES = async (
     }
 
     const categories = await DocumentCategory.find();
-    
-    response.status(200).json({ 
+
+    response.status(200).json({
       categories: categories.map(category => ({
         id: category._id,
         name: category.name,
@@ -176,7 +176,7 @@ export const FETCH_DOCUMENTS = async (
   console.log("In the FETCH_DOCUMENTS function");
   try {
     const { studentId } = request.query;
-    
+
     if (!studentId) {
       response.status(400).json({ error: "Student ID is required" });
       return;
@@ -184,8 +184,8 @@ export const FETCH_DOCUMENTS = async (
 
     // Fetch the student's documents
     const documents = await Document.find({ studentId });
-    
-    response.status(200).json({ 
+
+    response.status(200).json({
       documents: documents.map(doc => ({
         id: doc._id,
         name: doc.name,
@@ -213,23 +213,29 @@ export const UPLOAD_DOCUMENT = async (
   console.log("In the UPLOAD_DOCUMENT function");
   uploadDocument(request, response, async (err) => {
     if (err instanceof multer.MulterError) {
-      return response.status(400).json({ message: `Upload error: ${err.message}` });
+      console.error("Multer error:", err);
+      return response.status(400).json({ success: false, message: `Upload error: ${err.message}` });
     } else if (err) {
-      return response.status(500).json({ message: `Unknown upload error: ${err.message}` });
+      console.error("Unknown upload error:", err);
+      return response.status(500).json({ success: false, message: `Unknown upload error: ${err.message}` });
     }
-    
+
     try {
+      console.log("Request body:", request.body);
+      console.log("Request file:", request.file);
+
       const { documentName, categoryId, studentId } = request.body;
-      
+
       if (!documentName || !categoryId || !studentId || !request.file) {
-        response.status(400).json({ message: "Missing required fields" });
+        console.error("Missing required fields:", { documentName, categoryId, studentId, file: !!request.file });
+        response.status(400).json({ success: false, message: "Missing required fields" });
         return;
       }
-      
+
       // Get the file details
       const file = request.file;
       const fileUrl = `${request.protocol}://${request.get('host')}/uploads/documents/${file.filename}`;
-      
+
       // Create the document record
       const newDocument = await Document.create({
         studentId,
@@ -240,7 +246,7 @@ export const UPLOAD_DOCUMENT = async (
         categoryId,
         status: "pending"
       });
-      
+
       response.status(201).json({
         success: true,
         message: "Document uploaded successfully",
@@ -256,7 +262,7 @@ export const UPLOAD_DOCUMENT = async (
       });
     } catch (error) {
       console.error("Error uploading document:", error);
-      response.status(500).json({ message: "Failed to upload document" });
+      response.status(500).json({ success: false, message: "Failed to upload document" });
     }
   });
 };
@@ -272,29 +278,29 @@ export const DELETE_DOCUMENT = async (
   console.log("In the DELETE_DOCUMENT function");
   try {
     const { documentId } = request.body;
-    
+
     if (!documentId) {
       response.status(400).json({ message: "Document ID is required" });
       return;
     }
-    
+
     // Find the document first to get the file URL
     const document = await Document.findById(documentId);
-    
+
     if (!document) {
       response.status(404).json({ message: "Document not found" });
       return;
     }
-    
+
     // Delete the document from the database
     await Document.findByIdAndDelete(documentId);
-    
+
     // Try to delete the physical file if possible
     try {
       const urlParts = document.url.split('/');
       const filename = urlParts[urlParts.length - 1];
       const filePath = path.join(__dirname, '../../public/uploads/documents', filename);
-      
+
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
@@ -302,7 +308,7 @@ export const DELETE_DOCUMENT = async (
       console.error("Error deleting file:", fileError);
       // Continue execution even if file deletion fails
     }
-    
+
     response.status(200).json({
       success: true,
       message: "Document deleted successfully"

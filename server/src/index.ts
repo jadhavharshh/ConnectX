@@ -12,6 +12,7 @@ import path from 'path';
 import ChatMessageModel from './models/ChatSchema';
 import MenteeRoutes from './Routes/MenteeRoutes';
 import MentorRoutes from './Routes/MentorRoutes';
+import fs from 'fs';
 
 dotenv.config();
 
@@ -24,6 +25,12 @@ const io = new Server(server, {  // Set up Socket.IO
     credentials: true
   }
 });
+
+const uploadDir = path.join(__dirname, '../public/uploads/documents');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 const port = process.env.PORT || 5000;
 const DATABASE_URL = process.env.DATABASE_URL;
