@@ -26,3 +26,5 @@ export const FETCH_DOCUMENT_CATEGORIES = `${MENTEE_API}/document-categories`;
 export const FETCH_DOCUMENTS = `${MENTEE_API}/documents`;
 export const UPLOAD_DOCUMENT = `${MENTEE_API}/upload-document`;
 export const DELETE_DOCUMENT = `${MENTEE_API}/delete-document`;
+// Add this to your constants.ts file
+export const FETCH_ALL_STUDENTS = `${MENTOR_API}/fetch-all-students`;

@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ADD_MENTEES, FETCH_CHAT, FETCH_MENTEES } from "@/utils/constants";
+import { ADD_MENTEES, FETCH_ALL_STUDENTS, FETCH_CHAT, FETCH_MENTEES } from "@/utils/constants";
 
 // Define interfaces for our data structures
 interface Mentee {
@@ -111,44 +111,30 @@ export default function MentorPage() {
     }, []);
 
     // Replace the fetchData function with this implementation
+    // Replace the fetchData function with this implementation
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            // 1. Fetch students who are not yet your mentees
-            const studentsResponse = await apiClient.get(FETCH_CHAT);
+            // 1. Fetch all students - using the simplified endpoint
+            const studentsResponse = await apiClient.get(FETCH_ALL_STUDENTS);
 
-            // Filter out only students (not teachers)
-            const allStudents = studentsResponse.data.contacts
-                .filter((contact: any) => contact.role === "student")
-                .map((student: any) => ({
-                    id: student._id || student.id,
-                    name: student.name,
-                    email: student.email || "",
-                    studentId: student.studentId || "",
-                    year: student.year || "",
-                    division: student.division || "",
-                }));
+            if (studentsResponse.data.students) {
+                setStudents(studentsResponse.data.students);
+                setFilteredStudents(studentsResponse.data.students);
+            } else {
+                setStudents([]);
+                setFilteredStudents([]);
+            }
 
-            setStudents(allStudents);
-            setFilteredStudents(allStudents);
-
-            // 2. Fetch current mentees using the dedicated endpoint
+            // 2. Fetch current mentees
             try {
                 const menteesResponse = await apiClient.get(FETCH_MENTEES, {
                     params: { mentorId: userData?.data?.id || user?.id }
                 });
-                
-                // And in handleAddMentees function
-                const response = await apiClient.post(ADD_MENTEES, {
-                    mentorId: userData?.data?.id || user?.id,
-                    studentIds: selectedStudents
-                });
 
-                // Assuming the backend returns mentees with their documents
-                if (menteesResponse.data.mentees && menteesResponse.data.mentees.length > 0) {
+                if (menteesResponse.data.mentees) {
                     setMentees(menteesResponse.data.mentees);
                 } else {
-                    // If no mentees found, set empty array
                     setMentees([]);
                 }
             } catch (menteeError) {
@@ -158,7 +144,7 @@ export default function MentorPage() {
             }
         } catch (error) {
             console.error("Error fetching data:", error);
-            toast.error("Failed to fetch data");
+            toast.error("Failed to fetch students");
             setStudents([]);
             setFilteredStudents([]);
         } finally {

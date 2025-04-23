@@ -135,10 +135,12 @@ export default function MenteePage() {
             }
         }
     };
+    const [isLoading, setIsLoading] = useState<boolean>(false);
 
     // Replace the fetchData function with this implementation
     const fetchData = async () => {
         try {
+            setIsLoading(true);
             // Update these lines in the fetchData function
             const mentorResponse = await apiClient.get(FETCH_MENTOR, {
                 params: { studentId: userData?.data?.id || user?.id }
@@ -172,6 +174,8 @@ export default function MenteePage() {
         } catch (error) {
             console.error("Error fetching data:", error);
             toast.error("Failed to load mentee data");
+        } finally {
+            setIsLoading(false);
         }
     };
 

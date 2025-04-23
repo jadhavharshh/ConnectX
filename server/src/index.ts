@@ -10,6 +10,8 @@ import DataRoutes from './Routes/DataRoutes';
 import ChatRoutes from './Routes/ChatRoutes';
 import path from 'path';
 import ChatMessageModel from './models/ChatSchema';
+import MenteeRoutes from './Routes/MenteeRoutes';
+import MentorRoutes from './Routes/MentorRoutes';
 
 dotenv.config();
 
@@ -41,6 +43,8 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 app.use("/api/auth", AuthRoutes);
 app.use("/api/data", DataRoutes);
 app.use("/api/chat", ChatRoutes);
+app.use("/api/mentor", MentorRoutes);
+app.use("/api/mentee", MenteeRoutes);
 
 app.get('/', (req, res) => {
     res.send('Server is running');
