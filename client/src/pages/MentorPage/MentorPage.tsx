@@ -52,7 +52,7 @@ import {
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ADD_MENTEES, FETCH_ALL_STUDENTS, FETCH_CHAT, FETCH_MENTEES } from "@/utils/constants";
+import { ADD_MENTEES, FETCH_ALL_STUDENTS, FETCH_CHAT, FETCH_MENTEES, MENTOR_API, UPDATE_DOCUMENT_STATUS } from "@/utils/constants";
 
 // Define interfaces for our data structures
 interface Mentee {
@@ -73,6 +73,7 @@ interface Document {
     size: number;
     uploadDate: string;
     url: string;
+    status?: string; // Added status property
 }
 
 interface Student {
@@ -149,6 +150,45 @@ export default function MentorPage() {
             setFilteredStudents([]);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    // Add this new function to update document status
+    const updateDocumentStatus = async (documentId: string, status: "approved" | "rejected") => {
+        try {
+            const response = await apiClient.patch(`${UPDATE_DOCUMENT_STATUS}`, {
+                documentId,
+                status
+            });
+
+            if (response.data.success) {
+                // Update local state
+                setMentees(prev => prev.map(mentee => ({
+                    ...mentee,
+                    documents: mentee.documents.map(doc =>
+                        doc.id === documentId ? { ...doc, status } : doc
+                    )
+                })));
+
+                if (selectedMentee) {
+                    setSelectedMentee(prev => {
+                        if (!prev) return prev;
+                        return {
+                            ...prev,
+                            documents: prev.documents.map(doc =>
+                                doc.id === documentId ? { ...doc, status } : doc
+                            )
+                        };
+                    });
+                }
+
+                toast.success(`Document ${status === "approved" ? "approved" : "rejected"} successfully`);
+            } else {
+                throw new Error(response.data.message || "Failed to update document status");
+            }
+        } catch (error) {
+            console.error("Error updating document status:", error);
+            toast.error("Failed to update document status");
         }
     };
 
@@ -237,6 +277,17 @@ export default function MentorPage() {
         return yearMap[yearCode] || yearCode;
     };
 
+    const getStatusBadge = (status: string) => {
+        switch (status) {
+            case 'approved':
+                return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">Approved</Badge>;
+            case 'rejected':
+                return <Badge className="bg-red-500/10 text-red-600 hover:bg-red-500/20 border-red-500/20">Rejected</Badge>;
+            case 'pending':
+            default:
+                return <Badge className="bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500/20 border-yellow-500/20">Pending</Badge>;
+        }
+    };
     return (
         <SidebarProvider>
             <AppSidebar />
@@ -448,24 +499,29 @@ export default function MentorPage() {
                                 </div>
                             )}
                         </TabsContent>
-
                         <TabsContent value="documents">
-                            {mentees.some(mentee => mentee.documents.length > 0) ? (
+                            {mentees.some(mentee => mentee.documents && mentee.documents.length > 0) ? (
                                 <div className="border rounded-lg overflow-hidden">
-                                    <div className="bg-muted/70 px-4 py-3">
+                                    <div className="bg-muted/70 px-4 py-3 flex justify-between items-center">
                                         <h3 className="font-medium">Recent Document Submissions</h3>
+                                        <Badge variant="outline">
+                                            {mentees.reduce((count, mentee) => count + (mentee.documents?.length || 0), 0)} documents
+                                        </Badge>
                                     </div>
 
                                     <div className="divide-y">
                                         {mentees.flatMap(mentee =>
-                                            mentee.documents.map(doc => (
+                                            mentee.documents && mentee.documents.map(doc => (
                                                 <div key={doc.id} className="flex items-center justify-between p-4 hover:bg-muted/10">
                                                     <div className="flex items-center gap-3">
                                                         <div className="bg-primary/10 p-2 rounded">
                                                             <FileText className="h-5 w-5 text-primary" />
                                                         </div>
                                                         <div>
-                                                            <div className="font-medium">{doc.name}</div>
+                                                            <div className="font-medium flex items-center gap-2">
+                                                                {doc.name}
+                                                                {doc.status && getStatusBadge(doc.status)}
+                                                            </div>
                                                             <div className="text-sm text-muted-foreground flex items-center gap-3">
                                                                 <span>By {mentee.name}</span>
                                                                 <span>•</span>
@@ -483,7 +539,7 @@ export default function MentorPage() {
                                                         </Button>
                                                     </div>
                                                 </div>
-                                            ))
+                                            )) || []
                                         )}
                                     </div>
                                 </div>
@@ -545,7 +601,10 @@ export default function MentorPage() {
                                                                 <FileText className="h-4 w-4 text-primary" />
                                                             </div>
                                                             <div>
-                                                                <div className="font-medium">{doc.name}</div>
+                                                                <div className="font-medium flex items-center gap-2">
+                                                                    {doc.name}
+                                                                    {doc.status && getStatusBadge(doc.status)}
+                                                                </div>
                                                                 <div className="text-xs text-muted-foreground">
                                                                     {formatFileSize(doc.size)} • Uploaded on {formatDate(doc.uploadDate)}
                                                                 </div>
@@ -558,6 +617,28 @@ export default function MentorPage() {
                                                                     <Download className="h-4 w-4" />
                                                                 </a>
                                                             </Button>
+
+                                                            {/* Only show approval/rejection buttons for pending documents */}
+                                                            {(!doc.status || doc.status === 'pending') && (
+                                                                <>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-8 bg-green-500/10 hover:bg-green-500/20 text-green-600 border-green-500/20"
+                                                                        onClick={() => updateDocumentStatus(doc.id, "approved")}
+                                                                    >
+                                                                        Approve
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        className="h-8 bg-red-500/10 hover:bg-red-500/20 text-red-600 border-red-500/20"
+                                                                        onClick={() => updateDocumentStatus(doc.id, "rejected")}
+                                                                    >
+                                                                        Reject
+                                                                    </Button>
+                                                                </>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 ))}

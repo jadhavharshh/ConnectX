@@ -289,7 +289,7 @@ export default function MenteePage() {
     };
 
     // Get status badge variant
-    const getStatusBadge = (status: Document['status']) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
             case 'approved':
                 return <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-500/20">Approved</Badge>;
