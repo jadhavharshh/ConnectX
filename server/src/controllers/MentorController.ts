@@ -49,8 +49,8 @@ export const FETCH_MENTEES = async (
   response: Response,
   next: NextFunction
 ): Promise<void> => {
-  console.log("In the FETCH_MENTEES function");
   try {
+    console.log("In FETCH_MENTEES function");
     const { mentorId } = request.query;
 
     if (!mentorId) {
@@ -60,6 +60,7 @@ export const FETCH_MENTEES = async (
 
     // Find all mentor-mentee relationships for this mentor
     const mentorships = await MentorMentee.find({ mentorId });
+    console.log(`Found ${mentorships.length} mentorships for mentor ${mentorId}`);
 
     if (!mentorships || mentorships.length === 0) {
       response.status(200).json({ mentees: [] });
@@ -71,32 +72,36 @@ export const FETCH_MENTEES = async (
 
     // Find all students with these IDs
     const students = await StudentSchema.find({ clerkUserId: { $in: studentIds } });
+    console.log(`Found ${students.length} students from mentorships`);
 
     // Get documents for each student
-    const studentDocuments = await Promise.all(
-      students.map(async (student) => {
-        const documents = await Document.find({ studentId: student.clerkUserId });
-        return {
-          id: student.clerkUserId,
-          name: student.name,
-          email: student.email,
-          studentId: student.studentId,
-          year: student.year,
-          division: student.division,
-          documents: documents.map(doc => ({
-            id: doc._id,
-            name: doc.name,
-            type: doc.type,
-            size: doc.size,
-            uploadDate: doc.uploadDate,
-            url: doc.url,
-            status: doc.status
-          }))
-        };
-      })
-    );
+    const menteePromises = students.map(async (student) => {
+      // Fetch documents for this student
+      const documents = await Document.find({ studentId: student.clerkUserId });
+      console.log(`Found ${documents.length} documents for student ${student.name}`);
 
-    response.status(200).json({ mentees: studentDocuments });
+      return {
+        id: student.clerkUserId,
+        name: student.name,
+        email: student.email || student.studentId,
+        studentId: student.studentId,
+        year: student.year || "first",
+        division: student.division || "A",
+        documents: documents.map(doc => ({
+          id: doc._id,
+          name: doc.name,
+          type: doc.type,
+          size: doc.size,
+          uploadDate: doc.uploadDate,
+          url: doc.url,
+          status: doc.status
+        }))
+      };
+    });
+
+    const mentees = await Promise.all(menteePromises);
+    response.status(200).json({ mentees });
+
   } catch (error) {
     console.error("Error fetching mentees:", error);
     response.status(500).json({ error: "Failed to fetch mentees" });
@@ -217,5 +222,31 @@ export const FETCH_MENTEE_DOCUMENTS = async (
   } catch (error) {
     console.error("Error fetching mentee documents:", error);
     response.status(500).json({ error: "Failed to fetch mentee documents" });
+  }
+};
+
+export const UPDATE_DOCUMENT_STATUS = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { documentId, status } = request.body;
+    
+    if (!documentId || !status || !["approved", "rejected"].includes(status)) {
+      response.status(400).json({ error: "Document ID and valid status are required" });
+      return;
+    }
+    
+    // Update the document status
+    await Document.findByIdAndUpdate(documentId, { status });
+    
+    response.status(200).json({ 
+      success: true, 
+      message: `Document status updated to ${status}` 
+    });
+  } catch (error) {
+    console.error("Error updating document status:", error);
+    response.status(500).json({ error: "Failed to update document status" });
   }
 };

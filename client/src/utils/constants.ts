@@ -28,3 +28,4 @@ export const UPLOAD_DOCUMENT = `${MENTEE_API}/upload-document`;
 export const DELETE_DOCUMENT = `${MENTEE_API}/delete-document`;
 // Add this to your constants.ts file
 export const FETCH_ALL_STUDENTS = `${MENTOR_API}/fetch-all-students`;
+export const UPDATE_DOCUMENT_STATUS = `${MENTOR_API}/update-document-status`;
