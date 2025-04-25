@@ -114,7 +114,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {
         name: "ConnectX",
         logo: GalleryVerticalEnd,
-        plan: "Made by TOPGs",
+        plan: "",
       },
     ],
     navMain: [...baseNavMain, ...teacherNav, ...studentNav],
