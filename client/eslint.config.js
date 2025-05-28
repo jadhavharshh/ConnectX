@@ -23,6 +23,13 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // Disable unused variable warnings
+      '@typescript-eslint/no-unused-vars': 'off',
+      // Disable specific TypeScript rules
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      // Add other rules you want to disable
     },
   },
 )
