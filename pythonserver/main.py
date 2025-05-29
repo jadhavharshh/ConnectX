@@ -32,7 +32,12 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app, resources={r"/*": {
+    "origins": ["https://connect-x-povk.vercel.app", "http://localhost:5173"],
+    "methods": ["GET", "POST", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"],
+    "supports_credentials": True
+}})
 
 # Get Groq API key from environment variables
 groq_api_key = os.environ.get('GROQ_API_KEY')
