@@ -12,7 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/pyapi': {
-        target: 'http://localhost:6001',
+        target: 'https://connectx-python-backend.onrender.com',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
