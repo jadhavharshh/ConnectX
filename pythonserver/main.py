@@ -61,9 +61,6 @@ def get_user_memory(user_id):
         )
     return user_memories[user_id]
 
-@app.route("/health", methods=["GET"])
-def health_check():
-    return jsonify({"status": "healthy", "service": "ConnectX AI Service with Groq"})
 
 def start_keep_alive(server_url):
     """Start a background thread that pings the server periodically."""
