@@ -26,7 +26,9 @@ export const initializeSocket = (userId: string) => {
       console.log('Socket connected with ID:', socket?.id);
       
       // Authenticate with the user ID
-      socket.emit('authenticate', userId);
+      if (socket) {
+        socket.emit('authenticate', userId);
+      }
       console.log('Authentication request sent for user:', userId);
     });
     
