@@ -14,6 +14,12 @@ from langchain_groq import ChatGroq
 from pymongo import MongoClient
 import re
 from datetime import datetime
+import threading
+import time
+import random
+import requests
+from datetime import datetime
+import os
 
 # Add this at the top with other imports
 # MongoDB connection - initialize once at startup
@@ -58,6 +64,43 @@ def get_user_memory(user_id):
 @app.route("/health", methods=["GET"])
 def health_check():
     return jsonify({"status": "healthy", "service": "ConnectX AI Service with Groq"})
+
+def start_keep_alive(server_url):
+    """Start a background thread that pings the server periodically."""
+    def perform_health_check():
+        while True:
+            try:
+                print(f"[{datetime.now().isoformat()}] Server self-ping to prevent inactivity shutdown")
+                
+                response = requests.get(f"{server_url}/health")
+                print(f"Health check response: {response.status_code} - {response.text}")
+                
+                # Calculate next ping time (between 7-13 minutes)
+                min_interval = 7 * 60  # 7 minutes in seconds
+                max_interval = 13 * 60  # 13 minutes in seconds
+                next_interval = random.randint(min_interval, max_interval)
+                
+                print(f"Next ping scheduled in {next_interval / 60:.1f} minutes")
+                time.sleep(next_interval)
+            except Exception as e:
+                print(f"Error during self-ping: {e}")
+                # If ping fails, try again in 5 minutes
+                time.sleep(300)
+    
+    # Start the background thread
+    initial_interval = random.randint(7 * 60, 13 * 60)  # 7-13 minutes in seconds
+    print(f"Keep-alive service started, first ping in {initial_interval / 60:.1f} minutes")
+    
+    # Wait the initial interval before starting the thread
+    threading.Timer(initial_interval, lambda: threading.Thread(
+        target=perform_health_check, 
+        daemon=True
+    ).start()).start()
+
+# Add a health endpoint
+@app.route('/health', methods=['GET'])
+def health_check():
+    return 'OK', 200
 
 @app.route("/pyapi/generate-content", methods=["POST"])
 def generate_content():
@@ -389,4 +432,7 @@ def reset_conversations():
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 6001))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    # Use the Render production URL
+    server_url = os.getenv("SERVER_URL", "https://connectx-python-backend.onrender.com")
+    start_keep_alive(server_url)
+    app.run(host="0.0.0.0", port=port, debug=False)  # Set debug=False in production
