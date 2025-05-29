@@ -99,7 +99,7 @@ def start_keep_alive(server_url):
 def health_check():
     return 'OK', 200
 
-@app.route("/pyapi/generate-content", methods=["POST"])
+@app.route("/generate-content", methods=["POST"])
 def generate_content():
     try:
         print("In the Generate Content endpoint")
@@ -158,7 +158,7 @@ Your response should ONLY include the improved description text with no addition
 
 
 
-@app.route("/pyapi/get-ai-response", methods=["POST"])
+@app.route("/get-ai-response", methods=["POST"])
 def get_ai_response():
     """
     Handle AI chat queries with enhanced context awareness of the ConnectX platform data.

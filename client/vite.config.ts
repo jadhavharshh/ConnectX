@@ -14,7 +14,7 @@ export default defineConfig({
       '/pyapi': {
         target: 'https://connectx-python-backend.onrender.com',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/pyapi/, '')  // Fix this line
       }
     }
   }
