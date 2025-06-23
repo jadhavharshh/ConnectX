@@ -195,9 +195,10 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
 export const FETCH_USER_INFO = async (request: Request, response: Response, next: NextFunction): Promise<void> => {
   try {
     console.log("IN THE FETCH_USER_INFO CONTROLLER");
+    console.log("Request query:", request.query);
     const { userId } = request.query;
     const trimmedUserId = (userId as string)?.trim();
-    // console.log(trimmedUserId);
+    console.log("Trimmed userId:", trimmedUserId);
 
     if (!trimmedUserId) {
       response.status(400).json({ error: "Missing or invalid userId" });
