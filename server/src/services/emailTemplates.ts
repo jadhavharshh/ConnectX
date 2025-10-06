@@ -28,7 +28,7 @@ const renderParagraphs = (lines: string[]) =>
     .filter(Boolean)
     .map(
       (line) =>
-        `<p style="margin: 0 0 12px 0; color: #1f2937; font-size: 15px; line-height: 1.6;">${line}</p>`
+        `<p style="margin: 0 0 14px 0; color: #0f172a; font-size: 16px; line-height: 1.7;">${line}</p>`
     )
     .join("");
 
@@ -40,10 +40,10 @@ const renderDetails = (details?: Array<{ label: string; value?: string } | null>
       if (!detail) return "";
       return `
         <tr>
-          <td style="padding: 6px 0; font-weight: 600; color: #111827; font-size: 13px;">${htmlEscape(
+          <td style="padding: 8px 0; font-weight: 600; color: #0f172a; font-size: 13px; letter-spacing: 0.4px;">${htmlEscape(
             detail.label
           )}</td>
-          <td style="padding: 6px 0; font-size: 13px; color: #374151;">${htmlEscape(
+          <td style="padding: 8px 0; font-size: 13px; color: #475569;">${htmlEscape(
             detail.value || "-"
           )}</td>
         </tr>`;
@@ -51,7 +51,7 @@ const renderDetails = (details?: Array<{ label: string; value?: string } | null>
     .join("");
 
   return `
-    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; margin-top: 16px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
       ${rows}
     </table>
   `;
@@ -60,9 +60,9 @@ const renderDetails = (details?: Array<{ label: string; value?: string } | null>
 const renderCTA = (cta?: { text: string; url: string }) => {
   if (!cta) return "";
   return `
-    <div style="margin-top: 24px;">
+    <div style="margin-top: 28px;">
       <a href="${cta.url}"
-         style="display: inline-block; padding: 12px 24px; border-radius: 8px; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none;">
+         style="display: inline-block; padding: 14px 28px; border-radius: 999px; background: linear-gradient(135deg, #4338ca, #1d4ed8); color: #ffffff; font-size: 15px; font-weight: 600; letter-spacing: 0.4px; text-decoration: none; box-shadow: 0 15px 30px rgba(29, 78, 216, 0.25);">
         ${htmlEscape(cta.text)}
       </a>
     </div>
@@ -89,44 +89,49 @@ const renderBaseTemplate = ({
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <title>${htmlEscape(title)}</title>
     </head>
-    <body style="margin: 0; background-color: #f3f4f6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #111827;">
-      <span style="display:none; color:#f3f4f6;">${htmlEscape(preheaderText)}</span>
-      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; background-color: #f3f4f6; padding: 32px 0;">
+    <body style="margin: 0; background-color: #0f172a; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #0f172a;">
+      <span style="display:none; color:#0f172a;">${htmlEscape(preheaderText)}</span>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; padding: 40px 12px;">
         <tr>
           <td align="center">
-            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 600px; background-color: #ffffff; border-radius: 18px; overflow: hidden; box-shadow: 0 16px 40px rgba(79, 70, 229, 0.15);">
+            <table role="presentation" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 640px; background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 28px; overflow: hidden; border: 1px solid rgba(148, 163, 184, 0.25); box-shadow: 0 40px 80px rgba(15, 23, 42, 0.20);">
               <tr>
-                <td style="padding: 32px; background: linear-gradient(135deg, #4f46e5, #8b5cf6); color: #ffffff;">
-                  <p style="margin: 0; letter-spacing: 1.5px; font-size: 12px; text-transform: uppercase; opacity: 0.8;">${htmlEscape(
+                <td style="padding: 40px 42px 30px 42px; background: radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.18), transparent 55%), radial-gradient(circle at 100% 0%, rgba(14, 165, 233, 0.22), transparent 62%);">
+                  <p style="margin: 0; letter-spacing: 4px; font-size: 12px; text-transform: uppercase; color: rgba(15, 23, 42, 0.55); font-weight: 600;">${htmlEscape(
                     headline
                   )}</p>
-                  <h1 style="margin: 12px 0 0 0; font-size: 24px; font-weight: 700;">${htmlEscape(
+                  <h1 style="margin: 16px 0 0 0; font-size: 32px; font-weight: 700; color: #0f172a; letter-spacing: -0.6px;">${htmlEscape(
                     title
                   )}</h1>
                 </td>
               </tr>
               <tr>
-                <td style="padding: 32px;">
+                <td style="padding: 0 42px 42px 42px; background: #ffffff;">
                   ${highlightLabel && highlightValue
-                    ? `<div style="border-radius: 12px; border: 1px solid #e5e7eb; padding: 16px 20px; background-color: #f9fafb; margin-bottom: 24px;">
-                        <p style="margin: 0; font-size: 12px; text-transform: uppercase; color: #6366f1; letter-spacing: 1px;">${htmlEscape(
+                    ? `<div style="display: inline-flex; align-items: center; padding: 12px 18px; margin-top: -26px; border-radius: 999px; background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(14, 165, 233, 0.12)); border: 1px solid rgba(59, 130, 246, 0.20); box-shadow: 0 15px 30px rgba(37, 99, 235, 0.10);">
+                        <span style="font-size: 13px; text-transform: uppercase; color: rgba(15, 23, 42, 0.55); letter-spacing: 2px; font-weight: 600; margin-right: 14px;">${htmlEscape(
                           highlightLabel
-                        )}</p>
-                        <p style="margin: 8px 0 0 0; font-size: 16px; font-weight: 600; color: #1f2937;">${htmlEscape(
+                        )}</span>
+                        <span style="font-size: 15px; font-weight: 600; color: #0f172a;">${htmlEscape(
                           highlightValue
-                        )}</p>
+                        )}</span>
                       </div>`
                     : ""}
-                  ${renderParagraphs(introLines)}
+
+                  <div style="margin-top: 32px; color: #0f172a;">
+                    ${renderParagraphs(introLines)}
+                  </div>
                   ${renderDetails(details)}
                   ${renderCTA(cta)}
-                  <p style="margin-top: 32px; font-size: 12px; color: #9ca3af;">${
-                    footerNote || "You're receiving this update because you're part of the ConnectX learning community."
-                  }</p>
+                  <p style="margin-top: 32px; font-size: 13px; color: rgba(15, 23, 42, 0.55); line-height: 1.6;">
+                    ${
+                      footerNote || "You are receiving this update because you are part of the ConnectX learning community."
+                    }
+                  </p>
                 </td>
               </tr>
             </table>
-            <p style="margin-top: 16px; font-size: 12px; color: #9ca3af;">ConnectX • Empowering collaborative learning</p>
+            <p style="margin-top: 24px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(226, 232, 240, 0.85); font-weight: 500;">ConnectX • Crafted for modern learning</p>
           </td>
         </tr>
       </table>
