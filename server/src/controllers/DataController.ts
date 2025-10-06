@@ -5,6 +5,7 @@ import mongoose from "mongoose";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { notifyAnnouncementCreated, notifyTaskCreated } from "../services/emailService";
 
 // Correctly import and extend Express types
 import 'express';
@@ -181,6 +182,17 @@ export const CREATE_ANNOUCEMENT = async (request: Request, response: Response, n
       });
       console.log(request.body);
       console.log(request.file);
+
+      notifyAnnouncementCreated({
+        title,
+        content,
+        category,
+        priority,
+        author,
+        date,
+      }).catch((error) => {
+        console.error("Failed to trigger announcement notification", error);
+      });
     } catch (error: any) {
       console.error("Error creating announcement:", error);
       response.status(500).json({
@@ -306,13 +318,42 @@ export const CREATE_TASK = async (request: Request, response: Response, next: Ne
       
       // Create the task in the database
       const task = await Task.create(taskData);
-      
+
       response.status(201).json({
         message: "Task created successfully",
         task
       });
-      
+
       console.log("Task created:", task);
+
+      const formatDateForEmail = (value?: string) => {
+        if (!value) return undefined;
+        const parsed = new Date(value);
+        if (Number.isNaN(parsed.getTime())) {
+          return value;
+        }
+        return parsed.toLocaleDateString("en-IN", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        });
+      };
+
+      const normalizedYear = assignedYear && assignedYear !== "None" ? assignedYear : undefined;
+      const normalizedDivision = assignedDivision && assignedDivision !== "None" ? assignedDivision : undefined;
+
+      notifyTaskCreated({
+        title,
+        description,
+        subject,
+        priority,
+        dueDate: formatDateForEmail(dueDate),
+        points,
+        assignedYear: normalizedYear,
+        assignedDivision: normalizedDivision,
+      }).catch((error) => {
+        console.error("Failed to trigger task notification", error);
+      });
     } catch (error: any) {
       console.error("Error creating task:", error);
       response.status(500).json({

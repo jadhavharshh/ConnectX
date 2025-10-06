@@ -5,6 +5,7 @@ import fs from "fs";
 import mongoose from "mongoose";
 import Course, { ICourse, ICourseModule, ICourseLesson, ICourseResource } from "../models/CourseSchema";
 import CourseDiscussion from "../models/CourseDiscussionSchema";
+import { notifyCourseChange } from "../services/emailService";
 
 interface MulterRequest extends Request {
   file?: Express.Multer.File;
@@ -359,6 +360,14 @@ export const CREATE_COURSE = (request: Request, response: Response, _next: NextF
         message: "Course created successfully",
         course,
       });
+
+      notifyCourseChange({
+        course,
+        action: "course-created",
+        performedBy: createdByName || createdByEmail,
+      }).catch((error) => {
+        console.error("Failed to trigger course creation notification", error);
+      });
     } catch (error: any) {
       console.error("Error creating course", error);
       response.status(500).json({ message: "Failed to create course", error: error.message });
@@ -500,6 +509,14 @@ export const UPDATE_COURSE = (request: Request, response: Response, _next: NextF
       await course.save();
 
       response.status(200).json({ message: "Course updated successfully", course });
+
+      notifyCourseChange({
+        course,
+        action: "course-updated",
+        performedBy: createdByName || createdByEmail || course.createdByName,
+      }).catch((error) => {
+        console.error("Failed to trigger course update notification", error);
+      });
     } catch (error: any) {
       console.error("Error updating course", error);
       response.status(500).json({ message: "Failed to update course", error: error.message });
@@ -581,6 +598,15 @@ export const ADD_MODULE = async (request: Request, response: Response) => {
     response.status(201).json({
       message: "Module added successfully",
       module: createdModule,
+    });
+
+    notifyCourseChange({
+      course,
+      action: "module-added",
+      module: createdModule,
+      performedBy: course.createdByName,
+    }).catch((error) => {
+      console.error("Failed to trigger course module notification", error);
     });
   } catch (error: any) {
     console.error("Error adding module", error);
@@ -788,6 +814,16 @@ export const ADD_LESSON: RequestHandler = (req, res) => {
         : module.lessons[module.lessons.length - 1];
 
       response.status(201).json({ message: "Lesson added successfully", lesson: createdLesson });
+
+      notifyCourseChange({
+        course,
+        action: "lesson-added",
+        module,
+        lesson: createdLesson || null,
+        performedBy: request.body?.performedBy || course.createdByName,
+      }).catch((error) => {
+        console.error("Failed to trigger course lesson notification", error);
+      });
     } catch (error: any) {
       console.error("Error adding lesson", error);
       response.status(500).json({ message: "Failed to add lesson", error: error.message });
@@ -927,6 +963,16 @@ export const UPDATE_LESSON: RequestHandler = (req, res) => {
       const updatedLesson = lessonDocuments.id(lessonId as any);
 
       response.status(200).json({ message: "Lesson updated successfully", lesson: updatedLesson });
+
+      notifyCourseChange({
+        course,
+        action: "lesson-updated",
+        module,
+        lesson: updatedLesson || null,
+        performedBy: request.body?.performedBy || course.createdByName,
+      }).catch((error) => {
+        console.error("Failed to trigger course lesson update notification", error);
+      });
     } catch (error: any) {
       console.error("Error updating lesson", error);
       response.status(500).json({ message: "Failed to update lesson", error: error.message });

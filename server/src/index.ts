@@ -67,6 +67,7 @@ app.get('/health', (req: express.Request, res: express.Response): void => {
 export function startKeepAlive(serverUrl: string) {
   // Function to perform a health check ping
   const performHealthCheck = () => {
+    console.log("SMTP host:", process.env.SMTP_HOST);
     console.log(`[${new Date().toISOString()}] Server self-ping to prevent inactivity shutdown`);
 
     fetch(`${serverUrl}/health`)
