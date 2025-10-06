@@ -5,7 +5,7 @@ import { createContext, useContext, ReactNode, useState, useEffect } from 'react
 let socket: Socket | null = null;
 
 export const initializeSocket = (userId: string) => {
-    const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+    const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
     
     // Disconnect existing socket if any
     if (socket) {

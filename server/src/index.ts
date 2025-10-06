@@ -32,7 +32,7 @@ if (!fs.existsSync(uploadDir)) {
 }
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 const DATABASE_URL = process.env.DATABASE_URL;
 const origin = process.env.ORIGIN || "http://localhost:5173";
 

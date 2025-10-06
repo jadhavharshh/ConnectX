@@ -52,7 +52,7 @@ npm install
 ```
 Create a `.env` file:
 ```
-VITE_BACKEND_URL=http://localhost:5000
+VITE_BACKEND_URL=http://localhost:5001
 VITE_CLERK_PUBLISHABLE_KEY=your_key
 ```
 Run development server:
@@ -72,7 +72,7 @@ npm install
 Create a `.env` file:
 ```
 DATABASE_URL=mongodb://localhost:27017/connectx
-PORT=5000
+PORT=5001
 JWT_SECRET=your_jwt_secret
 
 ```

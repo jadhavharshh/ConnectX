@@ -153,7 +153,7 @@ export function MailDisplay({ mail }: MailDisplayProps) {
       // Check if message is already in the list (avoid duplicates)
       const messageExists = messages.some(m => 
         m.content === newMessage.content && 
-        Math.abs(new Date(m.timestamp).getTime() - new Date(newMessage.timestamp).getTime()) < 5000
+        Math.abs(new Date(m.timestamp).getTime() - new Date(newMessage.timestamp).getTime()) < 5001
       );
       
       if (!messageExists) {
