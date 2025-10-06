@@ -62,10 +62,25 @@ const ensureTransporter = () => {
 const normalizeAudienceValue = (value?: string | null) => {
   if (!value) return undefined;
   const trimmed = value.trim();
-  if (!trimmed || ["all", "none", "n/a", "any"].includes(trimmed.toLowerCase())) {
+  if (!trimmed) return undefined;
+
+  const lowered = trimmed.toLowerCase();
+  const neutralTokens = new Set([
+    "all",
+    "all years",
+    "all year",
+    "all divisions",
+    "all division",
+    "any",
+    "none",
+    "n/a"
+  ]);
+
+  if (neutralTokens.has(lowered)) {
     return undefined;
   }
-  return trimmed.toLowerCase();
+
+  return lowered;
 };
 
 const getStudentRecipients = async (audience?: { year?: string | null; division?: string | null }) => {
