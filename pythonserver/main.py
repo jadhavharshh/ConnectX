@@ -41,7 +41,7 @@ CORS(app, resources={r"/*": {
 
 # Get Groq API key from environment variables
 groq_api_key = os.environ.get('GROQ_API_KEY')
-model = 'llama3-8b-8192'
+model = 'llama-3.1-8b-instant'
 
 # Initialize Groq Langchain chat object
 groq_chat = ChatGroq(
