@@ -11,6 +11,7 @@ import {
   BotIcon,
   GraduationCap,
   UserRoundCog,
+  BookOpen,
 } from "lucide-react"
 
 import { useUser } from "@clerk/clerk-react"
@@ -52,6 +53,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       icon: CheckSquare,
     },
     {
+      title: "Courses",
+      url: "/courses",
+      icon: BookOpen,
+    },
+    {
       title: "Chat",
       url: "/chat",
       icon: MessageSquare,
@@ -85,6 +91,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           title: "Create Tasks",
           url: "/create-tasks",
           icon: CheckSquare,
+        },
+        {
+          title: "Create Course",
+          url: "/courses/create",
+          icon: BookOpen,
         },
         {
           title: "Mentor Section",

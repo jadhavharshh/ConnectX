@@ -8,6 +8,7 @@ import { Server } from 'socket.io'; // Add this
 import AuthRoutes from './Routes/AuthRoutes';
 import DataRoutes from './Routes/DataRoutes';
 import ChatRoutes from './Routes/ChatRoutes';
+import CourseRoutes from './Routes/CourseRoutes';
 import path from 'path';
 import ChatMessageModel from './models/ChatSchema';
 import MenteeRoutes from './Routes/MenteeRoutes';
@@ -50,6 +51,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 app.use("/api/auth", AuthRoutes);
 app.use("/api/data", DataRoutes);
 app.use("/api/chat", ChatRoutes);
+app.use("/api/courses", CourseRoutes);
 app.use("/api/mentor", MentorRoutes);
 app.use("/api/mentee", MenteeRoutes);
 

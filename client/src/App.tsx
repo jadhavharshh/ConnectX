@@ -21,6 +21,10 @@ import Tasks from './pages/Tasks/Tasks'
 import AiChat from './pages/AIChat/AiChat'
 import MenteePage from './pages/MenteePage/MenteePage'
 import MentorPage from './pages/MentorPage/MentorPage'
+import Courses from './pages/Courses/Courses'
+import CreateCourse from './pages/Courses/CreateCourse'
+import CourseDetail from './pages/Courses/CourseDetail'
+import ManageCourse from './pages/Courses/ManageCourse'
 
 // Ensure to replace or import your apiClient and FETCH_USER_INFO endpoint.
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
@@ -106,6 +110,10 @@ function App() {
         <Route path="/mentee-section" element={<PrivateRoute><MenteePage /></PrivateRoute>}/>
 
         <Route path="/aichat" element={<PrivateRoute><AiChat /></PrivateRoute>}/>
+        <Route path="/courses" element={<PrivateRoute><Courses /></PrivateRoute>}/>
+        <Route path="/courses/create" element={<PrivateRoute><TeacherRoute><CreateCourse /></TeacherRoute></PrivateRoute>}/>
+        <Route path="/courses/:courseId" element={<PrivateRoute><CourseDetail /></PrivateRoute>}/>
+        <Route path="/courses/:courseId/manage" element={<PrivateRoute><TeacherRoute><ManageCourse /></TeacherRoute></PrivateRoute>}/>
 
         {/* 404 Error Page */}
         <Route path="/404" element={<Error />} />

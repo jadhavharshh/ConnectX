@@ -29,3 +29,14 @@ export const DELETE_DOCUMENT = `${MENTEE_API}/delete-document`;
 // Add this to your constants.ts file
 export const FETCH_ALL_STUDENTS = `${MENTOR_API}/fetch-all-students`;
 export const UPDATE_DOCUMENT_STATUS = `${MENTOR_API}/update-document-status`;
+
+export const COURSES_API = "api/courses";
+export const COURSES_ENDPOINT = `${COURSES_API}`;
+export const COURSE_DETAIL = (courseId: string) => `${COURSES_API}/${courseId}`;
+export const COURSE_MODULES = (courseId: string) => `${COURSES_API}/${courseId}/modules`;
+export const COURSE_MODULE = (courseId: string, moduleId: string) => `${COURSES_API}/${courseId}/modules/${moduleId}`;
+export const COURSE_LESSONS = (courseId: string, moduleId: string) => `${COURSES_API}/${courseId}/modules/${moduleId}/lessons`;
+export const COURSE_LESSON = (courseId: string, moduleId: string, lessonId: string) => `${COURSES_API}/${courseId}/modules/${moduleId}/lessons/${lessonId}`;
+export const COURSE_DOUBTS = (courseId: string, lessonId: string) => `${COURSES_API}/${courseId}/lessons/${lessonId}/doubts`;
+export const COURSE_DISCUSSIONS = (courseId: string) => `${COURSES_API}/${courseId}/discussions`;
+export const COURSE_DISCUSSION_REPLY = (discussionId: string) => `${COURSES_API}/discussions/${discussionId}/reply`;
