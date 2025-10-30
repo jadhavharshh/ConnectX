@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useNavigate } from "react-router-dom"
+import { toast } from "sonner"
 // Removed Link import since we now call a prop callback instead
 
 interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
@@ -23,9 +24,52 @@ export function LoginForm({ onForgotPassword, onSwitchForm, className, ...props 
   // using navigate only if you decide to use routing outside Auth
   // const navigate = useNavigate()
 
+  const validatePassword = (password: string): boolean => {
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long")
+      return false
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error("Password must contain at least one uppercase letter")
+      return false
+    }
+    if (!/[a-z]/.test(password)) {
+      toast.error("Password must contain at least one lowercase letter")
+      return false
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error("Password must contain at least one number")
+      return false
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      toast.error("Password must contain at least one special character")
+      return false
+    }
+    return true
+  }
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address")
+      return false
+    }
+    return true
+  }
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError("")
+
+    // Validate email
+    if (!validateEmail(email)) {
+      return
+    }
+
+    // Validate password
+    if (!validatePassword(password)) {
+      return
+    }
 
     if (!signIn) {
       setError("SignIn is not ready. Please try again later.")
@@ -42,6 +86,7 @@ export function LoginForm({ onForgotPassword, onSwitchForm, className, ...props 
       if (result.status === "complete" && result.createdSessionId) {
         await clerk.setActive({ session: result.createdSessionId })
         console.log("Login complete, redirecting to dashboard")
+        toast.success("Login successful!")
         navigate("/dashboard")   
         // Redirect via route update if needed
 

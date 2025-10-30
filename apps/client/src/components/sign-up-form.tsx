@@ -34,6 +34,7 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
   const [step, setStep] = useState<number>(1);
   const [role, setRole] = useState<string>("");
   const [value, setValue] = useState<string>(""); // OTP value state
+  const [error, setError] = useState<string>(""); // Error state for consistent error handling
 
   // States for student sign-up
   const [studentYear, setStudentYear] = useState<
@@ -67,6 +68,56 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
   const clerk = useClerk();
   const navigate = useNavigate();
 
+  const validatePassword = (password: string): boolean => {
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long")
+      return false
+    }
+    if (!/[A-Z]/.test(password)) {
+      toast.error("Password must contain at least one uppercase letter")
+      return false
+    }
+    if (!/[a-z]/.test(password)) {
+      toast.error("Password must contain at least one lowercase letter")
+      return false
+    }
+    if (!/[0-9]/.test(password)) {
+      toast.error("Password must contain at least one number")
+      return false
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      toast.error("Password must contain at least one special character")
+      return false
+    }
+    return true
+  }
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address")
+      return false
+    }
+    return true
+  }
+
+  const validateStudentId = (studentId: string): boolean => {
+    if (studentId.length < 3) {
+      toast.error("Student ID must be at least 3 characters long")
+      return false
+    }
+    return true
+  }
+
+  const validateTeacherId = (teacherId: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(teacherId)) {
+      toast.error("Please enter a valid email address for Teacher ID")
+      return false
+    }
+    return true
+  }
+
   const handleNext = () => setStep(step + 1);
   const handleBack = () => setStep(step - 1);
 
@@ -90,12 +141,55 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
   const handleRegistration = async () => {
     if (!signUp) {
       console.error("SignUp resource is not ready");
+      setError("SignUp is not ready. Please try again later.");
       return;
     }
+
+    // Validate form data before proceeding
+    if (role === "student") {
+      if (!studentData.name.trim()) {
+        toast.error("Student name is required");
+        return;
+      }
+      if (!studentYear) {
+        toast.error("Please select your academic year");
+        return;
+      }
+      if (!studentDivision) {
+        toast.error("Please select your division");
+        return;
+      }
+      if (!validateStudentId(studentData.studentId)) {
+        return;
+      }
+      if (!validateEmail(studentData.email)) {
+        return;
+      }
+      if (!validatePassword(studentData.password)) {
+        return;
+      }
+    } else if (role === "teacher") {
+      if (!teacherData.name.trim()) {
+        toast.error("Teacher name is required");
+        return;
+      }
+      if (!teacherData.department.trim()) {
+        toast.error("Department is required");
+        return;
+      }
+      if (!validateTeacherId(teacherData.teacherId)) {
+        return;
+      }
+      if (!validatePassword(teacherData.password)) {
+        return;
+      }
+    }
+
     const emailToRegister =
       role === "student" ? studentData.email : teacherData.teacherId;
     const passwordToRegister =
       role === "student" ? studentData.password : teacherData.password;
+    setError("");
     setStep(3);
     try {
       await signUp.create({
@@ -103,9 +197,10 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
         password: passwordToRegister,
       });
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign up error", error);
-      alert("There was an error during sign up. Please try again.");
+      setError(error.errors ? error.errors[0].message : "There was an error during sign up. Please try again.");
+      setStep(2); // Go back to form step on error
     }
   };
 
@@ -114,8 +209,10 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
     e.preventDefault();
     if (!signUp) {
       console.error("SignUp resource is not ready");
+      setError("SignUp is not ready. Please try again later.");
       return;
     }
+    setError("");
     try {
       const completeSignUp = await signUp.attemptEmailAddressVerification({
         code: value,
@@ -146,11 +243,11 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
         navigate("/dashboard");
         toast.success("Account created successfully!");
       } else {
-        alert("OTP verification did not complete. Please try again.");
+        setError("OTP verification did not complete. Please try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("OTP verification error", error);
-      alert("There was an error during OTP verification. Please try again.");
+      setError(error.errors ? error.errors[0].message : "There was an error during OTP verification. Please try again.");
     }
   };
 
@@ -159,6 +256,7 @@ const SignUpForm = ({ onSwitchForm }: SignUpFormProps) => {
       onSubmit={step === 3 ? handleSubmit : (e) => e.preventDefault()}
       className={cn("flex flex-col gap-6")}
     >
+      {error && <p className="text-red-600">{error}</p>}
       {step === 1 && (
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2 text-start">
