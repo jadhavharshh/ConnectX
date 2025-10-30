@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const DataController_1 = require("../controllers/DataController");
+const DataRoutes = (0, express_1.Router)();
+DataRoutes.get('/fetch-user-info', DataController_1.FETCH_USER_INFO);
+DataRoutes.post('/create-announcement', DataController_1.CREATE_ANNOUCEMENT);
+DataRoutes.get('/fetch-announcements', DataController_1.FETCH_ANNOUNCEMENTS);
+DataRoutes.post('/create-task', DataController_1.CREATE_TASK);
+DataRoutes.get('/fetch-task', DataController_1.FETCH_TASKS);
+exports.default = DataRoutes;

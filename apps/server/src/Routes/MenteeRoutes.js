@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const MenteeController_1 = require("../controllers/MenteeController");
+const MenteeRoutes = (0, express_1.Router)();
+MenteeRoutes.get('/fetch-mentor', MenteeController_1.FETCH_MENTOR);
+MenteeRoutes.get('/document-categories', MenteeController_1.FETCH_DOCUMENT_CATEGORIES);
+MenteeRoutes.get('/documents', MenteeController_1.FETCH_DOCUMENTS);
+MenteeRoutes.post('/upload-document', MenteeController_1.UPLOAD_DOCUMENT);
+MenteeRoutes.delete('/delete-document', MenteeController_1.DELETE_DOCUMENT);
+exports.default = MenteeRoutes;
